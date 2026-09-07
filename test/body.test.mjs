@@ -128,3 +128,65 @@ test('độ nhô suy từ hiệu vòng ngực và vòng chân ngực', () => {
   assert.equal(bustProjection(900, 900), 0)
   assert.equal(bustProjection(880, 900), 0, 'hieu am thi coi nhu khong co bau')
 })
+
+import { buildLevels, LEVEL_COUNT } from '../src/body/levels.js'
+
+const full = (extra = {}, key = 'bella') =>
+  estimate(extra, SAMPLES[key]).measurements
+
+test('số tầng là hằng số, không phụ thuộc số đo', () => {
+  const a = buildLevels(full(), 'female')
+  const b = buildLevels(full({ chest: 700, waist: 600 }), 'female')
+  const c = buildLevels(full({ chest: 1600, waist: 1500 }), 'female')
+  assert.equal(a.length, LEVEL_COUNT)
+  assert.equal(b.length, LEVEL_COUNT)
+  assert.equal(c.length, LEVEL_COUNT)
+})
+
+test('tầng giảm dần theo y, không tầng nào vượt tầng khác', () => {
+  for (const m of [full(), full({ chest: 1600, hpsToWaistBack: 250 }), full({}, 'brian')]) {
+    const levels = buildLevels(m, 'female')
+    for (let i = 1; i < levels.length; i++) {
+      assert.ok(
+        levels[i].y < levels[i - 1].y,
+        `${levels[i].name} (y=${levels[i].y}) khong thap hon ${levels[i - 1].name} (y=${levels[i - 1].y})`
+      )
+    }
+  }
+})
+
+test('không có NaN trong bảng tầng', () => {
+  for (const lv of buildLevels(full(), 'female')) {
+    assert.ok(Number.isFinite(lv.y), `${lv.name}.y la NaN`)
+    assert.ok(Number.isFinite(lv.ratio) && Number.isFinite(lv.n), `${lv.name} dang NaN`)
+    assert.ok(lv.girth === null || Number.isFinite(lv.girth), `${lv.name}.girth NaN`)
+  }
+})
+
+test('tầng eo lấy đúng số đo vòng eo và ghi rõ nguồn', () => {
+  const m = full({ waist: 825 })
+  const levels = buildLevels(m, 'female')
+  const waistLevel = levels.find((l) => l.name === 'waist')
+  assert.equal(waistLevel.girth, 825)
+  assert.equal(waistLevel.measure, 'waist')
+
+  assert.equal(levels.find((l) => l.name.includes('~')).measure, null)
+  assert.equal(levels.find((l) => l.name === 'crotch').measure, null)
+  assert.equal(levels.find((l) => l.name === 'shoulder').measure, null)
+  assert.equal(levels.find((l) => l.name === 'armpit').measure, 'highBust')
+})
+
+test('chỉ tầng ngực nữ mới bật cờ bust', () => {
+  const female = buildLevels(full(), 'female').filter((l) => l.bust)
+  const male = buildLevels(full({}, 'brian'), 'male').filter((l) => l.bust)
+  assert.equal(female.length, 1)
+  assert.equal(female[0].name, 'bust')
+  assert.equal(male.length, 0)
+})
+
+test('vai dốc xuống theo shoulderSlope, thấp hơn chân cổ', () => {
+  const levels = buildLevels(full(), 'female')
+  const neck = levels.find((l) => l.name === 'neck')
+  const shoulder = levels.find((l) => l.name === 'shoulder')
+  assert.ok(shoulder.y < neck.y, 'dau vai phai thap hon chan co')
+})
