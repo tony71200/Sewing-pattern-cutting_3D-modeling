@@ -1,0 +1,37 @@
+# Chuẩn hoá xuống dòng: LF cả trong repo lẫn trong thư mục làm việc.
+# Không có file này, core.autocrlf=true trên Windows sẽ đổi LF -> CRLF khi checkout,
+# sinh diff rác và cảnh báo "LF will be replaced by CRLF".
+* text=auto eol=lf
+
+# File bắt buộc CRLF (Windows sẽ không chạy nếu là LF)
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+
+# File bắt buộc LF
+*.sh   text eol=lf
+
+# Nhị phân — không đụng vào, không diff
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+*.pdf  binary
+*.woff binary
+*.woff2 binary
+*.ttf  binary
+*.otf  binary
+*.eot  binary
+*.zip  binary
+*.glb  binary
+*.gltf binary
+*.fbx  binary
+*.obj  binary
+
+# SVG là text (rập xuất ra dạng này) — cần diff được
+*.svg  text eol=lf
+
+# Không tính vào thống kê ngôn ngữ của GitHub
+package-lock.json linguist-generated=true

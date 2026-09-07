@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pattern Studio — Phase 0</title>
+    <link rel="stylesheet" href="/src/app.css" />
+  </head>
+  <body>
+    <aside id="panel">
+      <h1>Pattern Studio</h1>
+      <p class="sub">Phase 0 — số đo → rập → in 1:1</p>
+
+      <label class="row">
+        <span>Block</span>
+        <select id="design"></select>
+      </label>
+
+      <label class="row">
+        <span>Chừa đường may (mm)</span>
+        <input id="sa" type="number" value="10" min="0" max="30" step="1" />
+      </label>
+
+      <details open>
+        <summary>Độ cử động</summary>
+        <p class="note">
+          Lượng vải dư để mặc vào còn cử động được. Tính theo % số đo, hiển thị kèm mm.
+          Chấm <strong>•</strong> = đã đổi khác mặc định.
+        </p>
+        <div id="ease"></div>
+        <button id="resetEase" type="button" class="ghost">Về mặc định</button>
+      </details>
+
+      <details>
+        <summary>Số đo cơ thể</summary>
+        <p class="note">Rê chuột lên tên số đo để xem cách đo.</p>
+        <div id="measurements"></div>
+        <button id="loadSample" type="button" class="ghost">Nạp số đo mẫu</button>
+      </details>
+
+      <div class="actions">
+        <button id="draft" type="button">Vẽ rập</button>
+        <button id="print" type="button">In 1:1 (A4)</button>
+        <button id="save" type="button" class="ghost">Lưu bản ghi .json</button>
+      </div>
+
+      <p id="status" class="status"></p>
+      <p class="warn">
+        In xong <strong>phải đo ô vuông hiệu chuẩn</strong> trên trang 1. Không đúng
+        100mm → sai tỉ lệ, đừng cắt vải.
+      </p>
+    </aside>
+
+    <main id="preview"></main>
+    <div id="print-area"></div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
