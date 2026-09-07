@@ -6,6 +6,8 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { createBody, createLimbs } from './body/mesh.js'
+import { SEGMENTS } from './body/section.js'
+import { MEASUREMENTS } from './vi.js'
 
 export function initView3d(container) {
   const scene = new THREE.Scene()
@@ -42,6 +44,37 @@ export function initView3d(container) {
     return { part, geometry: g }
   })
 
+  const ringGroup = new THREE.Group()
+  scene.add(ringGroup)
+  const ringMaterial = new THREE.LineBasicMaterial({ color: 0x3366cc })
+
+  /**
+   * Chỉ vẽ vòng cho tầng có SỐ ĐO NGUỒN thật (`lv.measure`). Tầng nội suy và tầng
+   * đũng có chu vi suy ra — dán nhãn số đo lên chúng là nói dối người dùng.
+   */
+  function drawRings(levels) {
+    ringGroup.clear()
+    for (let l = 0; l < levels.length; l++) {
+      const lv = levels[l]
+      if (!lv.measure || lv.girth === null) continue
+      const pts = []
+      const base = l * SEGMENTS * 3
+      for (let s = 0; s <= SEGMENTS; s++) {
+        const i = base + (s % SEGMENTS) * 3
+        pts.push(
+          new THREE.Vector3(
+            body.positions[i] * 1.01,
+            body.positions[i + 1],
+            body.positions[i + 2] * 1.01
+          )
+        )
+      }
+      const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), ringMaterial)
+      line.userData.label = `${MEASUREMENTS[lv.measure]?.t ?? lv.measure}: ${Math.round(lv.girth)} mm`
+      ringGroup.add(line)
+    }
+  }
+
   const controls = new OrbitControls(camera, renderer.domElement)
   controls.target.set(0, 900, 0)
   controls.addEventListener('change', render)
@@ -70,12 +103,15 @@ export function initView3d(container) {
   }
 
   function update(measurements, gender) {
+    let levels = null
     for (const { part, geometry } of meshes) {
-      part.update(measurements, gender)
+      const r = part.update(measurements, gender)
+      if (part === body) levels = r
       geometry.attributes.position.needsUpdate = true
       geometry.computeVertexNormals()
       geometry.computeBoundingSphere()
     }
+    if (levels) drawRings(levels)
     render()
   }
 
@@ -85,6 +121,31 @@ export function initView3d(container) {
 
   new ResizeObserver(resize).observe(container)
   resize()
+
+  const tip = document.createElement('div')
+  tip.className = 'ring-tip'
+  tip.hidden = true
+  container.appendChild(tip)
+
+  const ray = new THREE.Raycaster()
+  ray.params.Line.threshold = 12
+  const ndc = new THREE.Vector2()
+
+  renderer.domElement.addEventListener('pointermove', (e) => {
+    const r = renderer.domElement.getBoundingClientRect()
+    ndc.x = ((e.clientX - r.left) / r.width) * 2 - 1
+    ndc.y = -((e.clientY - r.top) / r.height) * 2 + 1
+    ray.setFromCamera(ndc, camera)
+    const hit = ray.intersectObjects(ringGroup.children, false)[0]
+    if (hit) {
+      tip.textContent = hit.object.userData.label
+      tip.style.left = `${e.clientX - r.left + 12}px`
+      tip.style.top = `${e.clientY - r.top + 12}px`
+      tip.hidden = false
+    } else {
+      tip.hidden = true
+    }
+  })
 
   return { update, resize }
 }

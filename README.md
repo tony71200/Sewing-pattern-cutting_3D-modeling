@@ -6,10 +6,13 @@ giấy A4 đúng tỉ lệ 1:1 để cắt vải.
 Giao diện tiếng Việt, kể cả nhãn in trên rập (`Thân sau`, `Canh sợi`,
 `Cắt 2 đối xứng bằng vải chính`…).
 
-> **Đang ở Phase 0.** Hiện chỉ có: số đo → rập → in.
-> Ma-nơ-canh 3D và phần LLM đọc ảnh trang phục **chưa làm**.
-> Xem lộ trình đầy đủ trong [CLAUDE.md](CLAUDE.md) và phân tích khả thi trong
-> [docs/00-research-and-feasibility.md](docs/00-research-and-feasibility.md).
+> **Đang ở Phase 1.** Hiện có: số đo → rập → in, và ma-nơ-canh 3D theo số đo.
+> Phần LLM đọc ảnh trang phục **chưa làm**.
+> Xem lộ trình đầy đủ trong [CLAUDE.md](CLAUDE.md), phân tích khả thi trong
+> [docs/00-research-and-feasibility.md](docs/00-research-and-feasibility.md), và thiết kế
+> ma-nơ-canh trong [spec Phase 1](docs/superpowers/specs/2026-09-07-3d-mannequin-design.md).
+>
+> Rập vẫn **chưa được kiểm chứng bằng người thật** — chưa in, chưa cắt toile, chưa mặc thử.
 
 ## Làm được gì
 
@@ -19,6 +22,8 @@ Giao diện tiếng Việt, kể cả nhãn in trên rập (`Thân sau`, `Canh s
 - Chừa đường may (seam allowance) tuỳ chỉnh
 - In 1:1 chia trang A4, có chồng mép để dán và **ô hiệu chuẩn 100 mm**
 - Xuất bản ghi `.json` (số đo + ease + phiên bản) để tái tạo lại đúng rập đó về sau
+- **Ma-nơ-canh 3D toàn thân** biến đổi theo số đo, xoay/thu phóng được, có vòng tầng đo —
+  rê chuột lên vòng eo hiện đúng số vòng eo bạn nhập
 
 ## Yêu cầu
 
@@ -109,9 +114,14 @@ npm run preview  # xem thử bản build
 ```
 index.html                       giao diện
 src/main.js                      form, vẽ rập, in, lưu trữ
+src/store.js                     trạng thái dùng chung (form rập + panel 3D)
 src/tile.js                      cắt SVG thành trang A4 1:1
 src/vi.js                        TOÀN BỘ chuỗi tiếng Việt (UI + nhãn trên rập)
+src/view3d.js                    cảnh three.js
+src/body/                        hình học ma-nơ-canh — toán thuần, không đụng DOM
 test/tile.test.mjs               test chia trang
+test/store.test.mjs              test trạng thái
+test/body.test.mjs               test hình học ma-nơ-canh
 CLAUDE.md                        quy ước kỹ thuật, lộ trình
 docs/00-research-and-feasibility.md   khảo sát & đánh giá khả thi
 ```
@@ -120,7 +130,7 @@ Muốn sửa chữ tiếng Việt: sửa `src/vi.js`, đừng sửa chỗ khác.
 
 ## Chưa có / cố ý chưa làm
 
-- Ma-nơ-canh 3D (Phase 1 — [spec đã viết, chưa code](docs/superpowers/specs/2026-09-07-3d-mannequin-design.md))
+- Mặc trang phục lên ma-nơ-canh, tư thế/chuyển động, đầu và bàn tay bàn chân, xuất mesh
 - Upload ảnh → LLM phân tích → sinh rập (Phase 2)
 - Mô phỏng vải rủ (Phase 3)
 - Nhóm option chiết (darts), vòng nách (armhole), kiểu dáng (style) — chưa đưa ra giao diện.
@@ -140,6 +150,7 @@ bản nháp.
 | Nguồn | License | Quan hệ |
 |---|---|---|
 | [FreeSewing](https://freesewing.dev/) v4 | MIT | **Dùng qua npm, không fork.** Toàn bộ việc dựng rập, kể cả phần khó nhất là offset đường may trên đường cong bezier. Block `Bella` và `Brian` là code của FreeSewing, không phải của dự án này. |
+| [three.js](https://threejs.org/) | MIT | **Dùng qua npm, không fork.** Render ma-nơ-canh 3D. Hình học thân do dự án này tự sinh, không lấy mesh của ai. |
 | [Vite](https://vite.dev/) | MIT | Công cụ build/dev server. |
 
 Phần do dự án này viết: giao diện, từ điển tiếng Việt (`src/vi.js`), và bộ chia trang A4 1:1
@@ -159,11 +170,6 @@ lấy code, không lấy asset, không fork**:
 | [Sewformer](https://github.com/sail-sg/sewformer), [DressCode](https://github.com/IHe-KaiI/DressCode), [ChatGarment](https://chatgarment.github.io/) | không rõ / hỗn hợp | Code nghiên cứu, phụ thuộc Maya + Qualoth (phần mềm thương mại). Đọc để lấy kiến trúc. |
 
 Chi tiết khảo sát: [docs/00-research-and-feasibility.md](docs/00-research-and-feasibility.md).
-
-### Sắp dùng (chưa cài)
-
-[three.js](https://threejs.org/) (MIT) — cho ma-nơ-canh 3D ở Phase 1. Xem
-[spec Phase 1](docs/superpowers/specs/2026-09-07-3d-mannequin-design.md).
 
 ---
 

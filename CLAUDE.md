@@ -54,7 +54,8 @@ mesh (ABF++/LSCM) cho ra mảnh méo, không có dart, không may được. Xem
    - [x] Xuất bản ghi `.json` (measurements + spec + version) để tái tạo
    - [ ] **In thật, dán, cắt toile, mặc thử** ← chưa làm thì phase 0 CHƯA XONG
    - [ ] Sửa lại theo kết quả mặc thử (ease? armhole? dart?)
-1. Ma-nơ-canh 3D (three.js + morph targets từ số đo). Chỉ xem, không tương tác.
+1. [x] Ma-nơ-canh 3D. **Không dùng morph target** — sinh hình học thủ tục từ lát cắt ngang,
+   xem mục "Ma-nơ-canh 3D" bên dưới.
 2. VLM: ảnh → spec JSON. Người dùng **sửa spec trong form** rồi mới draft. Không auto-apply.
 3. Drape XPBD xem trước. Ghi rõ "gần đúng". Làm cuối cùng.
 
@@ -111,6 +112,32 @@ npm run dev     # vite, cổng 5173
 npm test        # node --test, kiểm tra toán chia trang
 npm run build
 ```
+
+## Ma-nơ-canh 3D (Phase 1)
+
+Sinh hình học thủ tục từ lát cắt ngang, **không dùng body model học máy** (Anny/SMPL đã cân
+nhắc rồi loại). Lý do và toàn bộ thiết kế:
+[spec Phase 1](docs/superpowers/specs/2026-09-07-3d-mannequin-design.md).
+
+Ba luật không được phá:
+
+1. **Chuẩn hoá chu vi là bước CUỐI** khi dựng tiết diện. Đắp bầu ngực trước, chuẩn hoá sau.
+   Đảo thứ tự thì vòng ngực sai mà không báo lỗi gì — `test/body.test.mjs` có test canh
+   riêng chuyện này, kèm một test chứng minh đảo thứ tự thì thật sự sai.
+2. **Số tầng và số điểm mỗi tầng là hằng số** (`LEVEL_COUNT` × `SEGMENTS`). Buffer cấp phát
+   một lần, cập nhật ghi đè tại chỗ. Đây là cơ chế "không giật lag", không phải chi tiết
+   nội bộ — có test kiểm tra danh tính `Float32Array` không đổi giữa hai lần dựng.
+3. **`src/body/*` là toán thuần** — không import DOM, không import three.js. Nhờ vậy test
+   chạy được bằng `node --test`, và sai 2mm bị bắt ở đây chứ không phải sau khi cắt vải.
+
+Trục toạ độ: `y` lên, gốc ở sàn, mm. `z > 0` phía trước. `x > 0` bên trái người xem.
+
+`Level.measure` giữ tên số đo nguồn của chu vi tầng, `null` cho tầng nội suy và tầng đũng.
+Vòng tầng đo chỉ vẽ khi có `measure` — dán nhãn số đo lên tầng suy ra là nói dối người dùng.
+
+Bẫy đã dính: khởi tạo chép cả 38 số đo mẫu vào store thì `estimate()` không còn gì để suy,
+nhãn "ước lượng" không bao giờ hiện, và số máy đoán bị trình bày y như số người dùng tự đo.
+Chỉ mồi số đo block cần (`sampleFor()` trong `main.js`).
 
 ## Khi code
 
