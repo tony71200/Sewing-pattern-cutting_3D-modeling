@@ -245,3 +245,36 @@ test('chỉ số tam giác nằm trong phạm vi mảng đỉnh', () => {
   body.update(full(), 'female')
   assert.ok(body.indices.every((i) => i >= 0 && i < body.vertexCount))
 })
+
+import { createLimbs, readLimbGirth } from '../src/body/mesh.js'
+
+test('chu vi mỗi vòng tay/chân khớp số đo', () => {
+  const m = full({ biceps: 313, wrist: 166, upperLeg: 620, knee: 380, ankle: 245 })
+  const limbs = createLimbs()
+  const rings = limbs.update(m, 'female')
+  for (let i = 0; i < rings.length; i++) {
+    assert.ok(
+      Math.abs(readLimbGirth(limbs.positions, i) - rings[i].girth) < 0.5,
+      `vong ${rings[i].name}: do ${readLimbGirth(limbs.positions, i).toFixed(2)}, can ${rings[i].girth}`
+    )
+  }
+})
+
+test('tay và chân có đủ bốn chi', () => {
+  const limbs = createLimbs()
+  const rings = limbs.update(full(), 'female')
+  const names = rings.map((r) => r.name)
+  assert.ok(names.some((n) => n.startsWith('armL')))
+  assert.ok(names.some((n) => n.startsWith('armR')))
+  assert.ok(names.some((n) => n.startsWith('legL')))
+  assert.ok(names.some((n) => n.startsWith('legR')))
+})
+
+test('chi không sinh NaN và số đỉnh cố định', () => {
+  const limbs = createLimbs()
+  limbs.update(full({ biceps: 200 }), 'female')
+  const n = limbs.positions.length
+  limbs.update(full({ biceps: 500 }), 'female')
+  assert.equal(limbs.positions.length, n)
+  assert.ok(limbs.positions.every(Number.isFinite))
+})
