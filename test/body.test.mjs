@@ -38,3 +38,48 @@ test('estimated liệt kê đúng những tên do máy suy ra', () => {
   assert.ok(!estimated.includes('waist'))
   assert.ok(estimated.includes('hips'))
 })
+
+import { superellipse, perimeter, scaleToGirth, SEGMENTS } from '../src/body/section.js'
+
+test('siêu ê-líp trả về đúng số điểm cố định', () => {
+  assert.equal(superellipse(100, 80, 2).length, SEGMENTS)
+  assert.equal(superellipse(300, 50, 4).length, SEGMENTS)
+})
+
+test('n=2 cho ê-líp thường, chu vi khớp công thức Ramanujan', () => {
+  const a = 100, b = 60
+  const p = perimeter(superellipse(a, b, 2))
+  const h = ((a - b) ** 2) / ((a + b) ** 2)
+  const ramanujan = Math.PI * (a + b) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h)))
+  assert.ok(Math.abs(p - ramanujan) / ramanujan < 0.001, `lech ${p} vs ${ramanujan}`)
+})
+
+test('scaleToGirth cho chu vi ĐÚNG BẰNG mục tiêu', () => {
+  for (const [a, b, n, target] of [
+    [100, 80, 2, 900],
+    [300, 50, 4, 1034],
+    [50, 50, 2, 380],
+    [200, 90, 3, 1200],
+  ]) {
+    const pts = scaleToGirth(superellipse(a, b, n), target)
+    assert.ok(
+      Math.abs(perimeter(pts) - target) < 0.5,
+      `a=${a} b=${b} n=${n}: duoc ${perimeter(pts)}, can ${target}`
+    )
+  }
+})
+
+test('scaleToGirth giữ nguyên tỉ lệ dáng', () => {
+  const raw = superellipse(200, 100, 2)
+  const scaled = scaleToGirth(raw, 1000)
+  const ratioRaw = Math.max(...raw.map((p) => p[0])) / Math.max(...raw.map((p) => p[1]))
+  const ratioScaled =
+    Math.max(...scaled.map((p) => p[0])) / Math.max(...scaled.map((p) => p[1]))
+  assert.ok(Math.abs(ratioRaw - ratioScaled) < 1e-9)
+})
+
+test('không sinh NaN với tham số biên', () => {
+  for (const pts of [superellipse(1, 1, 2), superellipse(500, 1, 8)]) {
+    assert.ok(pts.every(([x, z]) => Number.isFinite(x) && Number.isFinite(z)))
+  }
+})
