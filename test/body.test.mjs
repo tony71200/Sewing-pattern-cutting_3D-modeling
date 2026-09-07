@@ -83,3 +83,48 @@ test('không sinh NaN với tham số biên', () => {
     assert.ok(pts.every(([x, z]) => Number.isFinite(x) && Number.isFinite(z)))
   }
 })
+
+import { addBust, bustProjection } from '../src/body/section.js'
+
+test('bầu ngực đẩy mặt trước ra tại vị trí hai đỉnh ngực', () => {
+  const raw = superellipse(180, 100, 2.5)
+  const bust = addBust(raw, { bustSpan: 200, projection: 40, sigma: 70 })
+  const frontZ = (pts) => Math.max(...pts.map(([, z]) => z))
+  assert.ok(frontZ(bust) > frontZ(raw), 'mat truoc phai nho ra')
+})
+
+test('bầu ngực không đụng vào mặt sau', () => {
+  const raw = superellipse(180, 100, 2.5)
+  const bust = addBust(raw, { bustSpan: 200, projection: 40, sigma: 70 })
+  for (let i = 0; i < raw.length; i++) {
+    if (raw[i][1] <= 0) assert.deepEqual(bust[i], raw[i], `diem ${i} o mat sau bi doi`)
+  }
+})
+
+test('BẤT BIẾN: đắp bầu ngực TRƯỚC rồi chuẩn hoá SAU thì chu vi vẫn đúng', () => {
+  const target = 1034
+  const withBust = scaleToGirth(
+    addBust(superellipse(180, 100, 2.5), { bustSpan: 200, projection: 40, sigma: 70 }),
+    target
+  )
+  assert.ok(Math.abs(perimeter(withBust) - target) < 0.5)
+})
+
+test('đảo thứ tự thì chu vi SAI — đây là lỗi mà test trên tồn tại để bắt', () => {
+  const target = 1034
+  const wrong = addBust(scaleToGirth(superellipse(180, 100, 2.5), target), {
+    bustSpan: 200,
+    projection: 40,
+    sigma: 70,
+  })
+  assert.ok(
+    Math.abs(perimeter(wrong) - target) > 1,
+    'neu test nay do thi bau nguc qua nho de chung minh duoc gi'
+  )
+})
+
+test('độ nhô suy từ hiệu vòng ngực và vòng chân ngực', () => {
+  assert.ok(bustProjection(1034, 900) > bustProjection(1034, 1000))
+  assert.equal(bustProjection(900, 900), 0)
+  assert.equal(bustProjection(880, 900), 0, 'hieu am thi coi nhu khong co bau')
+})

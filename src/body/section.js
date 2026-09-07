@@ -54,3 +54,37 @@ export function scaleToGirth(pts, target) {
   const k = target / perimeter(pts)
   return pts.map(([x, z]) => [x * k, z * k])
 }
+
+/**
+ * Độ nhô bầu ngực suy từ hiệu vòng ngực và vòng chân ngực.
+ *
+ * Đây chính là cách xác định cỡ cúp áo ngực ngoài đời, nên không cần bắt người
+ * dùng nhập thêm số đo nào.
+ */
+export function bustProjection(chest, underbust) {
+  const diff = chest - underbust
+  if (diff <= 0) return 0
+  // ponytail: hệ số 0.30 chọn theo cảm quan, chưa đối chiếu bảng cỡ cúp thật.
+  // Chỉnh lại khi có ma-nơ-canh in ra so với người thật.
+  return diff * 0.3
+}
+
+/**
+ * Đắp hai bướu vào nửa TRƯỚC của tiết diện, tại x = ±bustSpan/2.
+ *
+ * PHẢI gọi TRƯỚC scaleToGirth. Bướu làm tăng chiều dài cung; chuẩn hoá trước
+ * rồi mới đắp thì vòng ngực không còn đúng — và sai im lặng.
+ */
+export function addBust(pts, { bustSpan, projection, sigma }) {
+  if (projection <= 0) return pts
+  const apex = bustSpan / 2
+  const maxZ = Math.max(...pts.map(([, z]) => z)) || 1
+  return pts.map(([x, z]) => {
+    if (z <= 0) return [x, z] // mặt sau không đụng tới
+    const d = Math.min(Math.abs(x - apex), Math.abs(x + apex))
+    // Nhân với độ "hướng ra trước" để không có bậc nhảy tại z = 0
+    const frontness = z / maxZ
+    const bump = projection * Math.exp(-(d * d) / (2 * sigma * sigma)) * frontness
+    return [x, z + bump]
+  })
+}
