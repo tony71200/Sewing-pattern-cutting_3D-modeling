@@ -190,3 +190,58 @@ test('vai dốc xuống theo shoulderSlope, thấp hơn chân cổ', () => {
   const shoulder = levels.find((l) => l.name === 'shoulder')
   assert.ok(shoulder.y < neck.y, 'dau vai phai thap hon chan co')
 })
+
+import { createBody, readGirth } from '../src/body/mesh.js'
+
+test('BẤT BIẾN CHÍNH: chu vi đo lại trên mảng đỉnh khớp số đo đầu vào', () => {
+  const m = full({ chest: 1034, waist: 825, underbust: 872, neck: 380, hips: 1006 })
+  const body = createBody()
+  const levels = body.update(m, 'female')
+
+  for (let i = 0; i < levels.length; i++) {
+    if (levels[i].girth === null) continue
+    const measured = readGirth(body.positions, i)
+    assert.ok(
+      Math.abs(measured - levels[i].girth) < 0.5,
+      `tang ${levels[i].name}: do duoc ${measured.toFixed(2)}mm, can ${levels[i].girth}mm`
+    )
+  }
+})
+
+test('bầu ngực KHÔNG phá vỡ bất biến chu vi', () => {
+  const m = full({ chest: 1034, underbust: 800 })
+  const body = createBody()
+  const levels = body.update(m, 'female')
+  const i = levels.findIndex((l) => l.name === 'bust')
+  assert.ok(Math.abs(readGirth(body.positions, i) - levels[i].girth) < 0.5)
+})
+
+test('số đỉnh không đổi giữa hai lần dựng với số đo khác nhau', () => {
+  const body = createBody()
+  body.update(full({ chest: 800 }), 'female')
+  const n1 = body.positions.length
+  body.update(full({ chest: 1500 }), 'female')
+  assert.equal(body.positions.length, n1)
+})
+
+test('cập nhật ghi đè TẠI CHỖ, không cấp phát mảng mới', () => {
+  const body = createBody()
+  body.update(full(), 'female')
+  const ref = body.positions
+  body.update(full({ chest: 1200 }), 'female')
+  assert.equal(body.positions, ref, 'phai la cung mot Float32Array')
+})
+
+test('không có NaN trong mảng đỉnh với số đo cực đoan', () => {
+  const body = createBody()
+  for (const m of [full({ chest: 600, waist: 500 }), full({ chest: 1800, waist: 1700 })]) {
+    body.update(m, 'female')
+    assert.ok(body.positions.every(Number.isFinite))
+  }
+})
+
+test('chỉ số tam giác nằm trong phạm vi mảng đỉnh', () => {
+  const body = createBody()
+  body.update(full(), 'female')
+  assert.ok(body.indices.every((i) => i >= 0 && i < body.vertexCount))
+})
