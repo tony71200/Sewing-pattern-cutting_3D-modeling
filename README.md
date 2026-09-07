@@ -120,7 +120,7 @@ Muốn sửa chữ tiếng Việt: sửa `src/vi.js`, đừng sửa chỗ khác.
 
 ## Chưa có / cố ý chưa làm
 
-- Ma-nơ-canh 3D (Phase 1)
+- Ma-nơ-canh 3D (Phase 1 — [spec đã viết, chưa code](docs/superpowers/specs/2026-09-07-3d-mannequin-design.md))
 - Upload ảnh → LLM phân tích → sinh rập (Phase 2)
 - Mô phỏng vải rủ (Phase 3)
 - Nhóm option chiết (darts), vòng nách (armhole), kiểu dáng (style) — chưa đưa ra giao diện.
@@ -131,10 +131,40 @@ Muốn sửa chữ tiếng Việt: sửa `src/vi.js`, đừng sửa chỗ khác.
 ra, cắt vải mộc (toile), mặc thử, rồi chỉnh lại. Trước khi làm bước đó, coi mọi rập ở đây là
 bản nháp.
 
-## Nền tảng
+## Nguồn và ghi công
 
-Rập được dựng bằng [FreeSewing](https://freesewing.dev/) v4 (MIT) — thư viện rập tham số
-bằng JavaScript, gồm cả phần khó nhất là offset đường may trên đường cong bezier. Block
-`Bella` và `Brian` lấy nguyên từ FreeSewing.
+**Dự án này hiện không fork mã nguồn của ai.** Mọi thư viện đều dùng nguyên bản qua npm.
+
+### Đang dùng
+
+| Nguồn | License | Quan hệ |
+|---|---|---|
+| [FreeSewing](https://freesewing.dev/) v4 | MIT | **Dùng qua npm, không fork.** Toàn bộ việc dựng rập, kể cả phần khó nhất là offset đường may trên đường cong bezier. Block `Bella` và `Brian` là code của FreeSewing, không phải của dự án này. |
+| [Vite](https://vite.dev/) | MIT | Công cụ build/dev server. |
+
+Phần do dự án này viết: giao diện, từ điển tiếng Việt (`src/vi.js`), và bộ chia trang A4 1:1
+(`src/tile.js`).
+
+### Đã cân nhắc rồi loại
+
+Các dự án dưới đây liên quan trực tiếp tới bài toán, đã đọc kỹ khi thiết kế, nhưng **không
+lấy code, không lấy asset, không fork**:
+
+| Nguồn | License | Vì sao không dùng |
+|---|---|---|
+| [GarmentCode](https://github.com/maria-korosteleva/GarmentCode) (ETH Zurich) | MIT | Python. Chỉ tham khảo ý tưởng tham số hoá rập theo component. |
+| [Anny](https://github.com/naver/anny) (Naver Labs) | Apache 2.0 | Body model tham số hoá, asset CC0 từ MakeHuman/MPFB2. Loại ở bước thiết kế Phase 1 — lý do ở [mục 2.1 của spec](docs/superpowers/specs/2026-09-07-3d-mannequin-design.md). |
+| MakeHuman / MPFB2 | CC0 | Như trên. |
+| [SMPL / SMPL-X](https://smpl-x.is.tue.mpg.de/modellicense.html) | non-commercial research | License cấm dùng thương mại. Loại từ đầu. |
+| [Sewformer](https://github.com/sail-sg/sewformer), [DressCode](https://github.com/IHe-KaiI/DressCode), [ChatGarment](https://chatgarment.github.io/) | không rõ / hỗn hợp | Code nghiên cứu, phụ thuộc Maya + Qualoth (phần mềm thương mại). Đọc để lấy kiến trúc. |
+
+Chi tiết khảo sát: [docs/00-research-and-feasibility.md](docs/00-research-and-feasibility.md).
+
+### Sắp dùng (chưa cài)
+
+[three.js](https://threejs.org/) (MIT) — cho ma-nơ-canh 3D ở Phase 1. Xem
+[spec Phase 1](docs/superpowers/specs/2026-09-07-3d-mannequin-design.md).
+
+---
 
 Dự án cá nhân, chạy local, không có backend.
