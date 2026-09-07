@@ -12,12 +12,14 @@ const MIN_GAP = 5
  */
 const SHAPE = {
   female: {
-    neck: [1.0, 2.0], shoulder: [1.0, 2.0], armpit: [1.35, 2.6], bust: [1.25, 2.4],
+    // Vai RỘNG và NÔNG. Để ratio 1.0 thì tầng vai thành đĩa tròn đường kính bằng
+    // cả bề rộng vai — nhìn ra cái mắc áo, không ra người.
+    neck: [1.0, 2.0], shoulder: [2.6, 2.6], armpit: [1.35, 2.6], bust: [1.25, 2.4],
     underbust: [1.3, 2.4], waist: [1.25, 2.2], hips: [1.35, 2.3], seat: [1.4, 2.4],
     crotch: [1.3, 2.2],
   },
   male: {
-    neck: [1.0, 2.0], shoulder: [1.0, 2.0], armpit: [1.4, 2.8], bust: [1.35, 2.7],
+    neck: [1.0, 2.0], shoulder: [2.6, 2.6], armpit: [1.4, 2.8], bust: [1.35, 2.7],
     underbust: [1.3, 2.6], waist: [1.2, 2.4], hips: [1.25, 2.4], seat: [1.25, 2.4],
     crotch: [1.2, 2.2],
   },

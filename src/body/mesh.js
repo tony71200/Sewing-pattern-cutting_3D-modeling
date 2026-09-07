@@ -44,6 +44,13 @@ export function createBody() {
     const levels = buildLevels(m, gender)
     const projection = gender === 'female' ? bustProjection(m.chest, m.underbust) : 0
 
+    // Bầu ngực phải TẮT DẦN theo chiều dọc, lên nách và xuống chân ngực. Đắp vào
+    // đúng một tầng thì ra một vành nổi ngang chứ không ra khối ngực (spec 3.5).
+    const yOf = (name) => levels.find((l) => l.name === name)?.y ?? 0
+    const yBust = yOf('bust')
+    const sigmaY =
+      Math.min(Math.abs(yBust - yOf('armpit')), Math.abs(yBust - yOf('underbust'))) * 0.9 || 1
+
     for (let l = 0; l < levels.length; l++) {
       const lv = levels[l]
       // Bán trục ban đầu tuỳ ý — scaleToGirth sẽ chuẩn hoá lại. Chỉ tỉ lệ ratio
@@ -52,8 +59,16 @@ export function createBody() {
       const a0 = b0 * lv.ratio
       let pts = superellipse(a0, b0, lv.n)
 
-      if (lv.bust && projection > 0) {
-        pts = addBust(pts, { bustSpan: m.bustSpan, projection, sigma: m.bustSpan * 0.35 })
+      if (projection > 0) {
+        const dy = (lv.y - yBust) / sigmaY
+        const weight = Math.exp(-dy * dy)
+        if (weight > 0.01) {
+          pts = addBust(pts, {
+            bustSpan: m.bustSpan,
+            projection: projection * weight,
+            sigma: m.bustSpan * 0.35,
+          })
+        }
       }
 
       if (lv.girth !== null && lv.girth > 0) {
@@ -134,10 +149,15 @@ export function createLimbs() {
     const shoulderX = m.shoulderToShoulder / 2
     const legX = m.hips / 8 // xấp xỉ nửa khoảng cách hai tâm chân
 
+    // Tay treo từ ĐẦU VAI, không phải từ HPS. Đường vai dốc xuống theo
+    // shoulderSlope (cùng công thức với tầng vai trong levels.js); lấy y HPS thì
+    // tay lơ lửng cao hơn thân.
+    const yShoulder = yHps - shoulderX * Math.tan((m.shoulderSlope * Math.PI) / 180)
+
     const chains = [
-      { p: 'armL', x0: shoulderX, y0: yHps, x1: shoulderX + 60, y1: yHps - m.shoulderToWrist,
+      { p: 'armL', x0: shoulderX, y0: yShoulder, x1: shoulderX + 60, y1: yShoulder - m.shoulderToWrist,
         girths: [m.biceps, m.biceps * 0.85, m.wrist * 1.35, m.wrist] },
-      { p: 'armR', x0: -shoulderX, y0: yHps, x1: -shoulderX - 60, y1: yHps - m.shoulderToWrist,
+      { p: 'armR', x0: -shoulderX, y0: yShoulder, x1: -shoulderX - 60, y1: yShoulder - m.shoulderToWrist,
         girths: [m.biceps, m.biceps * 0.85, m.wrist * 1.35, m.wrist] },
       { p: 'legL', x0: legX, y0: yCrotch, x1: legX, y1: 0,
         girths: [m.upperLeg, (m.upperLeg + m.knee) / 2, m.knee, m.ankle] },

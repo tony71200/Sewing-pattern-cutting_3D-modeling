@@ -6,6 +6,8 @@ import { cisFemaleAdult38, cisMaleAdult38 } from '@freesewing/models'
 import { tileToA4 } from './tile.js'
 import { MEASUREMENTS, OPTIONS, SVG_STRINGS } from './vi.js'
 import { getState, setState, setMeasurement, subscribe, save, load } from './store.js'
+import { initView3d } from './view3d.js'
+import { estimate, SAMPLES } from './body/estimate.js'
 
 const DESIGNS = {
   bella: { label: 'Bella — block thân nữ', Design: Bella, sample: cisFemaleAdult38 },
@@ -298,6 +300,37 @@ $('resetEase').addEventListener('click', onResetEase)
 $('draft').addEventListener('click', onDraft)
 $('print').addEventListener('click', onPrint)
 $('save').addEventListener('click', onSave)
+
+let view3d = null
+
+function genderOfDesign(key) {
+  return key === 'brian' ? 'male' : 'female'
+}
+
+function refreshBody() {
+  if (!view3d) return
+  const { design: key, measurements } = getState()
+  const { measurements: fullSet } = estimate(measurements, SAMPLES[key])
+  view3d.update(fullSet, genderOfDesign(key))
+}
+
+for (const btn of document.querySelectorAll('#tabs button')) {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab
+    for (const b of document.querySelectorAll('#tabs button')) {
+      b.classList.toggle('active', b === btn)
+    }
+    $('preview').hidden = tab !== 'pattern'
+    $('body3d').hidden = tab !== 'body'
+    if (tab === 'body') {
+      if (!view3d) view3d = initView3d($('body3d'))
+      view3d.resize()
+      refreshBody()
+    }
+  })
+}
+
+subscribe(refreshBody)
 
 load()
 if (!Object.keys(getState().measurements).length) {

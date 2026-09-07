@@ -51,7 +51,14 @@
       </p>
     </aside>
 
-    <main id="preview"></main>
+    <main id="stage">
+      <nav id="tabs">
+        <button type="button" data-tab="pattern" class="active">Rập</button>
+        <button type="button" data-tab="body">Thân 3D</button>
+      </nav>
+      <section id="preview" class="tab-panel"></section>
+      <section id="body3d" class="tab-panel" hidden></section>
+    </main>
     <div id="print-area"></div>
 
     <script type="module" src="/src/main.js"></script>

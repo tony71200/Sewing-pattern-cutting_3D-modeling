@@ -25,7 +25,8 @@
     "@freesewing/models": "^4.10.1",
     "@freesewing/plugin-i18n": "^4.10.1",
     "@freesewing/plugin-theme": "^4.10.1",
-    "@freesewing/plugin-transform": "^4.10.1"
+    "@freesewing/plugin-transform": "^4.10.1",
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "vite": "^8.2.2"
