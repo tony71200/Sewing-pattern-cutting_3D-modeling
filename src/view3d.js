@@ -48,7 +48,25 @@ export function initView3d(container) {
   controls.update()
 
   function render() {
+    // Tự chữa kích thước ngay trước khi vẽ. ResizeObserver và lần resize() lúc
+    // khởi tạo đều có thể chạy khi container còn 0x0 (tab vừa hiện, pane đang
+    // resize) và im lặng bỏ qua — hậu quả là buffer kẹt ở 300x150 mặc định rồi
+    // bị CSS kéo giãn, ảnh mờ mà không báo lỗi gì.
+    fitToContainer()
     renderer.render(scene, camera)
+  }
+
+  /** Trả về true nếu vừa đổi kích thước. */
+  function fitToContainer() {
+    const w = container.clientWidth
+    const h = container.clientHeight
+    if (!w || !h) return false
+    const size = renderer.getSize(new THREE.Vector2())
+    if (size.x === w && size.y === h) return false
+    renderer.setSize(w, h, false)
+    camera.aspect = w / h
+    camera.updateProjectionMatrix()
+    return true
   }
 
   function update(measurements, gender) {
@@ -62,13 +80,7 @@ export function initView3d(container) {
   }
 
   function resize() {
-    const w = container.clientWidth
-    const h = container.clientHeight
-    if (!w || !h) return
-    renderer.setSize(w, h, false)
-    camera.aspect = w / h
-    camera.updateProjectionMatrix()
-    render()
+    if (fitToContainer()) render()
   }
 
   new ResizeObserver(resize).observe(container)

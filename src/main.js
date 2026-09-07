@@ -4,7 +4,7 @@ import { themePlugin } from '@freesewing/plugin-theme'
 import { i18nPlugin } from '@freesewing/plugin-i18n'
 import { cisFemaleAdult38, cisMaleAdult38 } from '@freesewing/models'
 import { tileToA4 } from './tile.js'
-import { MEASUREMENTS, OPTIONS, SVG_STRINGS } from './vi.js'
+import { MEASUREMENTS, OPTIONS, SVG_STRINGS, UI } from './vi.js'
 import { getState, setState, setMeasurement, subscribe, save, load } from './store.js'
 import { initView3d } from './view3d.js'
 import { estimate, SAMPLES } from './body/estimate.js'
@@ -42,6 +42,13 @@ function easeOptions() {
 }
 
 const unitOf = (name) => MEASUREMENTS[name]?.unit ?? 'mm'
+
+/** Số đo mẫu, CHỈ những cái block đang chọn cần tới. */
+function sampleFor(key) {
+  const sample = DESIGNS[key].sample
+  const need = DESIGNS[key].Design.patternConfig?.measurements ?? []
+  return Object.fromEntries(need.map((n) => [n, sample[n]]))
+}
 
 // ---------- form ----------
 
@@ -131,6 +138,44 @@ function refreshEaseReadouts() {
     }
     if (pct !== Number(slider.dataset.dflt)) text += ' •'
     out.textContent = text
+  }
+}
+
+/** Số đo ma-nơ-canh 3D cần mà block không dùng tới. */
+function bodyOnlyMeasurements() {
+  const key = getState().design
+  const used = new Set(DESIGNS[key].Design.patternConfig?.measurements ?? [])
+  return Object.keys(SAMPLES[key])
+    .filter((n) => !used.has(n))
+    .sort((a, b) => (MEASUREMENTS[a]?.t ?? a).localeCompare(MEASUREMENTS[b]?.t ?? b, 'vi'))
+}
+
+function buildBodyForm() {
+  const key = getState().design
+  const { measurements: fullSet, estimated } = estimate(getState().measurements, SAMPLES[key])
+  const host = $('bodyMeasurements')
+  host.replaceChildren()
+
+  for (const name of bodyOnlyMeasurements()) {
+    const input = document.createElement('input')
+    input.type = 'number'
+    input.step = unitOf(name) === '°' ? '0.5' : '1'
+    input.min = '0'
+    input.dataset.measurement = name
+    input.value = fullSet[name] ?? ''
+
+    const m = MEASUREMENTS[name]
+    const row = field(`${m?.t ?? name} (${unitOf(name)})`, m?.d ? `${m.d}\n[${name}]` : name, input)
+
+    if (estimated.includes(name)) {
+      row.classList.add('is-estimated')
+      row.title = UI.estimatedHint
+      const tag = document.createElement('span')
+      tag.className = 'est-tag'
+      tag.textContent = UI.estimated
+      row.querySelector('span').appendChild(tag)
+    }
+    host.appendChild(row)
   }
 }
 
@@ -268,8 +313,18 @@ for (const [key, { label }] of Object.entries(DESIGNS)) {
 select.addEventListener('change', () => {
   setState({ design: select.value })
   buildMeasurementForm()
+  buildBodyForm()
   buildEaseForm()
   onDraft()
+})
+
+$('bodyMeasurements').addEventListener('input', (e) => {
+  const name = e.target.dataset?.measurement
+  if (!name) return
+  setMeasurement(name, Number(e.target.value))
+  const row = e.target.closest('.row')
+  row?.classList.remove('is-estimated')
+  row?.querySelector('.est-tag')?.remove()
 })
 
 $('measurements').addEventListener('input', (e) => {
@@ -290,8 +345,7 @@ $('ease').addEventListener('change', onDraft)
 $('sa').addEventListener('input', (e) => setState({ sa: Number(e.target.value) }))
 
 $('loadSample').addEventListener('click', () => {
-  const sample = DESIGNS[getState().design].sample
-  setState({ measurements: { ...getState().measurements, ...sample } })
+  setState({ measurements: { ...getState().measurements, ...sampleFor(getState().design) } })
   buildMeasurementForm()
   refreshEaseReadouts()
   onDraft()
@@ -334,11 +388,15 @@ subscribe(refreshBody)
 
 load()
 if (!Object.keys(getState().measurements).length) {
-  setState({ measurements: { ...DESIGNS[getState().design].sample } })
+  // Chỉ mồi những số đo BLOCK cần. Chép cả 38 số của mẫu thì estimate() không
+  // còn gì để suy, nhãn "ước lượng" không bao giờ hiện, và số máy đoán bị trình
+  // bày y như số người dùng tự đo.
+  setState({ measurements: sampleFor(getState().design) })
 }
 select.value = getState().design
 $('sa').value = String(getState().sa)
 buildMeasurementForm()
+buildBodyForm()
 buildEaseForm()
 subscribe(save)
 onDraft()

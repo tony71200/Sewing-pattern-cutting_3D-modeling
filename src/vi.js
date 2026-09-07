@@ -22,6 +22,39 @@ export const MEASUREMENTS = {
   waistToArmpit: { t: 'Eo lên nách', d: 'Từ ngang eo lên tới nách' },
   waistToHips: { t: 'Eo xuống hông', d: 'Từ ngang eo xuống ngang hông, đo dọc sườn' },
   wrist: { t: 'Vòng cổ tay', d: 'Chu vi cổ tay' },
+
+  // Chỉ ma-nơ-canh 3D dùng, block không cần
+  ankle: { t: 'Vòng cổ chân', d: 'Chu vi cổ chân' },
+  bustPointToUnderbust: { t: 'Đỉnh ngực xuống chân ngực', d: 'Từ đỉnh ngực xuống ngang chân ngực' },
+  bustFront: { t: 'Nửa vòng ngực trước', d: 'Phần vòng ngực thuộc mặt trước' },
+  crossSeam: { t: 'Vòng đáy', d: 'Từ eo trước, qua đũng, lên eo sau' },
+  crossSeamFront: { t: 'Vòng đáy trước', d: 'Phần vòng đáy thuộc mặt trước' },
+  crotchDepth: { t: 'Hạ đũng', d: 'Từ ngang eo xuống đũng, đo khi ngồi' },
+  head: { t: 'Vòng đầu', d: 'Chu vi đầu chỗ lớn nhất' },
+  heel: { t: 'Vòng gót', d: 'Chu vi vòng qua gót và mu bàn chân' },
+  highBustFront: { t: 'Nửa vòng ngực trên trước', d: 'Phần vòng ngực trên thuộc mặt trước' },
+  hips: { t: 'Vòng hông', d: 'Chu vi ngang xương hông' },
+  inseam: { t: 'Dài giàng quần', d: 'Từ đũng xuống sàn, đo mặt trong chân' },
+  knee: { t: 'Vòng gối', d: 'Chu vi đầu gối' },
+  seat: { t: 'Vòng mông', d: 'Chu vi chỗ nở nhất của mông' },
+  seatBack: { t: 'Nửa vòng mông sau', d: 'Phần vòng mông thuộc mặt sau' },
+  shoulderToElbow: { t: 'Vai đến khuỷu', d: 'Từ đầu vai xuống khuỷu tay' },
+  upperLeg: { t: 'Vòng đùi', d: 'Chu vi chỗ to nhất của đùi' },
+  waistToFloor: { t: 'Eo xuống sàn', d: 'Từ ngang eo xuống sàn, đo dọc sườn' },
+  waistToKnee: { t: 'Eo xuống gối', d: 'Từ ngang eo xuống đầu gối' },
+  waistToSeat: { t: 'Eo xuống mông', d: 'Từ ngang eo xuống chỗ mông nở nhất' },
+  waistToUnderbust: { t: 'Eo lên chân ngực', d: 'Từ ngang eo lên ngay dưới bầu ngực' },
+  waistToUpperLeg: { t: 'Eo xuống đùi', d: 'Từ ngang eo xuống chỗ đùi to nhất' },
+}
+
+/** Chuỗi giao diện 3D. */
+export const UI = {
+  tabPattern: 'Rập',
+  tabBody: 'Thân 3D',
+  bodyMeasurements: 'Số đo thân',
+  estimated: 'ước lượng',
+  estimatedHint:
+    'Số này do máy suy ra từ tỉ lệ cơ thể mẫu, không phải bạn đo. Sửa để dùng số thật.',
 }
 
 /**
