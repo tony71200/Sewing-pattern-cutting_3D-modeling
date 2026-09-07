@@ -5,6 +5,7 @@ import { i18nPlugin } from '@freesewing/plugin-i18n'
 import { cisFemaleAdult38, cisMaleAdult38 } from '@freesewing/models'
 import { tileToA4 } from './tile.js'
 import { MEASUREMENTS, OPTIONS, SVG_STRINGS } from './vi.js'
+import { getState, setState, setMeasurement, subscribe, save, load } from './store.js'
 
 const DESIGNS = {
   bella: { label: 'Bella — block thân nữ', Design: Bella, sample: cisFemaleAdult38 },
@@ -12,13 +13,12 @@ const DESIGNS = {
 }
 
 const $ = (id) => document.getElementById(id)
-const STORE_KEY = 'pattern-studio/v1'
 
 let lastDraft = null // { svg, record }
 
 // ---------- cấu hình lấy từ chính pattern config ----------
 
-const design = () => DESIGNS[$('design').value].Design
+const design = () => DESIGNS[getState().design].Design
 
 /** Số đo bắt buộc, sắp theo tên tiếng Việt cho dễ dò. */
 function requiredMeasurements() {
@@ -54,9 +54,7 @@ function field(labelText, title, input) {
 }
 
 function buildMeasurementForm() {
-  const key = $('design').value
-  const saved = loadSaved().measurements?.[key] ?? {}
-  const sample = DESIGNS[key].sample
+  const { measurements } = getState()
   const host = $('measurements')
   host.replaceChildren()
   for (const name of requiredMeasurements()) {
@@ -65,7 +63,7 @@ function buildMeasurementForm() {
     input.step = unitOf(name) === '°' ? '0.5' : '1'
     input.min = '0'
     input.dataset.measurement = name
-    input.value = saved[name] ?? sample[name] ?? ''
+    input.value = measurements[name] ?? ''
     const m = MEASUREMENTS[name]
     host.appendChild(
       field(`${m?.t ?? name} (${unitOf(name)})`, m?.d ? `${m.d}\n[${name}]` : name, input)
@@ -74,8 +72,7 @@ function buildMeasurementForm() {
 }
 
 function buildEaseForm() {
-  const key = $('design').value
-  const saved = loadSaved().options?.[key] ?? {}
+  const { easePct } = getState()
   const host = $('ease')
   host.replaceChildren()
 
@@ -97,7 +94,7 @@ function buildEaseForm() {
     slider.min = String(cfg.min)
     slider.max = String(cfg.max)
     slider.step = '0.5'
-    slider.value = String(saved[name] ?? cfg.pct)
+    slider.value = String(easePct[name] ?? cfg.pct)
     slider.dataset.option = name
     slider.dataset.dflt = String(cfg.pct)
 
@@ -135,59 +132,27 @@ function refreshEaseReadouts() {
   }
 }
 
+/** Đọc từ store, không đọc ngược từ DOM. */
 function readMeasurements() {
-  const out = {}
+  const { measurements } = getState()
   const bad = []
-  for (const input of $('measurements').querySelectorAll('input[data-measurement]')) {
-    const v = Number(input.value)
-    if (!Number.isFinite(v) || v <= 0) bad.push(MEASUREMENTS[input.dataset.measurement]?.t ?? input.dataset.measurement)
-    else out[input.dataset.measurement] = v
+  for (const name of design().patternConfig?.measurements ?? []) {
+    const v = measurements[name]
+    if (!Number.isFinite(v) || v <= 0) bad.push(MEASUREMENTS[name]?.t ?? name)
   }
   if (bad.length) throw new Error(`Thiếu hoặc sai số đo: ${bad.join(', ')}`)
-  return out
-}
-
-/** Trả về { pct } cho bản ghi, và { fraction } cho freesewing. */
-function readEase() {
-  const pct = {}
-  for (const slider of $('ease').querySelectorAll('input[data-option]')) {
-    pct[slider.dataset.option] = Number(slider.value)
-  }
-  return pct
-}
-
-// ---------- lưu trữ ----------
-
-function loadSaved() {
-  try {
-    return JSON.parse(localStorage.getItem(STORE_KEY) ?? '{}')
-  } catch {
-    return {}
-  }
-}
-
-function persist(key, measurements, optionsPct) {
-  const all = loadSaved()
-  all.measurements = { ...all.measurements, [key]: measurements }
-  all.options = { ...all.options, [key]: optionsPct }
-  try {
-    localStorage.setItem(STORE_KEY, JSON.stringify(all))
-  } catch {
-    /* localStorage đầy hoặc bị chặn — không chặn việc vẽ rập */
-  }
+  return measurements
 }
 
 // ---------- vẽ rập ----------
 
 function draft() {
-  const key = $('design').value
+  const { design: key, easePct, sa } = getState()
   const measurements = readMeasurements()
-  const optionsPct = readEase()
-  const sa = Number($('sa').value)
   if (!Number.isFinite(sa) || sa < 0) throw new Error('Đường may (seam allowance) không hợp lệ')
 
   // freesewing nhận option phần trăm dưới dạng phân số: 11% -> 0.11
-  const options = Object.fromEntries(Object.entries(optionsPct).map(([k, v]) => [k, v / 100]))
+  const options = Object.fromEntries(Object.entries(easePct).map(([k, v]) => [k, v / 100]))
 
   const { Design } = DESIGNS[key]
   const pattern = new Design({
@@ -202,7 +167,6 @@ function draft() {
   pattern.use(i18nPlugin, { vi: SVG_STRINGS })
   const svg = pattern.draft().render()
 
-  persist(key, measurements, optionsPct)
   lastDraft = {
     svg,
     record: {
@@ -211,7 +175,7 @@ function draft() {
       units: 'mm',
       sa,
       measurements,
-      easePct: optionsPct,
+      easePct,
       draftedAt: new Date().toISOString(),
     },
   }
@@ -279,9 +243,12 @@ function onSave() {
 }
 
 function onResetEase() {
+  const easePct = {}
   for (const slider of $('ease').querySelectorAll('input[data-option]')) {
     slider.value = slider.dataset.dflt
+    easePct[slider.dataset.option] = Number(slider.dataset.dflt)
   }
+  setState({ easePct })
   refreshEaseReadouts()
   onDraft()
 }
@@ -297,20 +264,33 @@ for (const [key, { label }] of Object.entries(DESIGNS)) {
 }
 
 select.addEventListener('change', () => {
+  setState({ design: select.value })
   buildMeasurementForm()
   buildEaseForm()
   onDraft()
 })
 
-$('measurements').addEventListener('input', refreshEaseReadouts)
-$('ease').addEventListener('input', refreshEaseReadouts)
+$('measurements').addEventListener('input', (e) => {
+  const name = e.target.dataset?.measurement
+  if (!name) return
+  setMeasurement(name, Number(e.target.value))
+  refreshEaseReadouts()
+})
+
+$('ease').addEventListener('input', (e) => {
+  const name = e.target.dataset?.option
+  if (!name) return
+  setState({ easePct: { ...getState().easePct, [name]: Number(e.target.value) } })
+  refreshEaseReadouts()
+})
 $('ease').addEventListener('change', onDraft)
 
+$('sa').addEventListener('input', (e) => setState({ sa: Number(e.target.value) }))
+
 $('loadSample').addEventListener('click', () => {
-  const sample = DESIGNS[select.value].sample
-  for (const input of $('measurements').querySelectorAll('input[data-measurement]')) {
-    input.value = sample[input.dataset.measurement] ?? ''
-  }
+  const sample = DESIGNS[getState().design].sample
+  setState({ measurements: { ...getState().measurements, ...sample } })
+  buildMeasurementForm()
   refreshEaseReadouts()
   onDraft()
 })
@@ -319,6 +299,13 @@ $('draft').addEventListener('click', onDraft)
 $('print').addEventListener('click', onPrint)
 $('save').addEventListener('click', onSave)
 
+load()
+if (!Object.keys(getState().measurements).length) {
+  setState({ measurements: { ...DESIGNS[getState().design].sample } })
+}
+select.value = getState().design
+$('sa').value = String(getState().sa)
 buildMeasurementForm()
 buildEaseForm()
+subscribe(save)
 onDraft()
