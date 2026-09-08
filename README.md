@@ -6,11 +6,11 @@ giấy A4 đúng tỉ lệ 1:1 để cắt vải.
 Giao diện tiếng Việt, kể cả nhãn in trên rập (`Thân sau`, `Canh sợi`,
 `Cắt 2 đối xứng bằng vải chính`…).
 
-> **Đang ở Phase 1.** Hiện có: số đo → rập → in, và ma-nơ-canh 3D theo số đo.
+> **Đang ở Phase 1.** Hiện có: số đo → rập → in, và thân người 3D theo số đo.
 > Phần LLM đọc ảnh trang phục **chưa làm**.
 > Xem lộ trình đầy đủ trong [CLAUDE.md](CLAUDE.md), phân tích khả thi trong
 > [docs/00-research-and-feasibility.md](docs/00-research-and-feasibility.md), và thiết kế
-> ma-nơ-canh trong [spec Phase 1](docs/superpowers/specs/2026-09-07-3d-mannequin-design.md).
+> thân 3D trong [spec Phase 1](docs/superpowers/specs/2026-09-08-3d-body-anny-design.md).
 >
 > Rập vẫn **chưa được kiểm chứng bằng người thật** — chưa in, chưa cắt toile, chưa mặc thử.
 
@@ -22,13 +22,15 @@ Giao diện tiếng Việt, kể cả nhãn in trên rập (`Thân sau`, `Canh s
 - Chừa đường may (seam allowance) tuỳ chỉnh
 - In 1:1 chia trang A4, có chồng mép để dán và **ô hiệu chuẩn 100 mm**
 - Xuất bản ghi `.json` (số đo + ease + phiên bản) để tái tạo lại đúng rập đó về sau
-- **Ma-nơ-canh 3D toàn thân** biến đổi theo số đo, xoay/thu phóng được, có vòng tầng đo —
-  rê chuột lên vòng eo hiện đúng số vòng eo bạn nhập
+- **Thân người 3D toàn thân** (nam/nữ) biến đổi theo số đo, xoay/thu phóng được
+- **Bảng lệch từng số đo**: thân không phải lúc nào cũng khớp hết, chỗ nào lệch thì hiện ra,
+  không giấu
 
 ## Yêu cầu
 
 - **Node.js 22 trở lên** (kiểm tra: `node -v`)
 - Trình duyệt bất kỳ (Chrome/Edge/Firefox) + máy in A4
+- **Python 3.10 trở lên** — chỉ cho tab *Thân 3D*. Phần rập chạy được mà không cần Python.
 
 ## Cài đặt
 
@@ -47,6 +49,25 @@ npm install
 > App chạy local, dữ liệu do chính mình nhập → chấp nhận được. Cần xem lại nếu có ngày đưa
 > lên mạng.
 
+### Service thân 3D (tuỳ chọn)
+
+Bỏ qua bước này thì tab **Rập** vẫn chạy đầy đủ; chỉ tab **Thân 3D** là không dùng được.
+
+```bash
+python -m venv .venv
+```
+
+```bash
+.venv/Scripts/python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+```
+
+```bash
+.venv/Scripts/python -m pip install -e service[dev]
+```
+
+Bản torch CPU khoảng 200 MB. Không cần bản CUDA: dựng thân mất khoảng 1 giây trên CPU, và
+sau đó browser tự lo phần kéo thanh trượt.
+
 ## Mở ứng dụng
 
 ```bash
@@ -56,6 +77,16 @@ npm run dev
 Mở trình duyệt vào **http://localhost:5173**
 
 Dừng server: `Ctrl + C` trong cửa sổ terminal.
+
+Muốn dùng tab **Thân 3D** thì mở thêm một cửa sổ terminal:
+
+```bash
+npm run service
+```
+
+Nó nạp Anny rồi hâm nóng một lượt trước khi báo sẵn sàng — lần fit đầu tiên mất ~8 giây vì
+trình biên dịch kernel, các lần sau ~1 giây. Chịu chờ lúc khởi động còn hơn để bạn đợi ở lần
+bấm đầu tiên.
 
 ## Cách dùng
 
@@ -107,6 +138,11 @@ Bộ Bella đầy đủ ra khoảng **18 trang A4** (6 cột × 3 hàng). Vài t
 npm test         # chạy test (toán chia trang A4)
 npm run build    # build bản tĩnh vào dist/
 npm run preview  # xem thử bản build
+npm run service  # service thân 3D, cổng 8791
+```
+
+```bash
+.venv/Scripts/python -m pytest service
 ```
 
 ## Cấu trúc
@@ -118,10 +154,12 @@ src/store.js                     trạng thái dùng chung (form rập + panel 3
 src/tile.js                      cắt SVG thành trang A4 1:1
 src/vi.js                        TOÀN BỘ chuỗi tiếng Việt (UI + nhãn trên rập)
 src/view3d.js                    cảnh three.js
-src/body/                        hình học ma-nơ-canh — toán thuần, không đụng DOM
+src/body3d.js                    đọc gói nhị phân của service, giải hệ 9x9, dựng mesh
+src/estimate.js                  suy số đo thiếu (bản sao logic ở service/estimate.py)
+service/                         service Python chạy Anny
 test/tile.test.mjs               test chia trang
 test/store.test.mjs              test trạng thái
-test/body.test.mjs               test hình học ma-nơ-canh
+test/body3d.test.mjs             test parser + bộ giải phía browser
 CLAUDE.md                        quy ước kỹ thuật, lộ trình
 docs/00-research-and-feasibility.md   khảo sát & đánh giá khả thi
 ```
@@ -130,7 +168,7 @@ Muốn sửa chữ tiếng Việt: sửa `src/vi.js`, đừng sửa chỗ khác.
 
 ## Chưa có / cố ý chưa làm
 
-- Mặc trang phục lên ma-nơ-canh, tư thế/chuyển động, đầu và bàn tay bàn chân, xuất mesh
+- Mặc trang phục lên thân, tư thế/chuyển động, xuất mesh ra file
 - Upload ảnh → LLM phân tích → sinh rập (Phase 2)
 - Mô phỏng vải rủ (Phase 3)
 - Nhóm option chiết (darts), vòng nách (armhole), kiểu dáng (style) — chưa đưa ra giao diện.
@@ -150,7 +188,9 @@ bản nháp.
 | Nguồn | License | Quan hệ |
 |---|---|---|
 | [FreeSewing](https://freesewing.dev/) v4 | MIT | **Dùng qua npm, không fork.** Toàn bộ việc dựng rập, kể cả phần khó nhất là offset đường may trên đường cong bezier. Block `Bella` và `Brian` là code của FreeSewing, không phải của dự án này. |
-| [three.js](https://threejs.org/) | MIT | **Dùng qua npm, không fork.** Render ma-nơ-canh 3D. Hình học thân do dự án này tự sinh, không lấy mesh của ai. |
+| [three.js](https://threejs.org/) | MIT | **Dùng qua npm, không fork.** Render thân 3D. |
+| [Anny](https://github.com/naver/anny) (Naver Labs) | Apache 2.0 | **Dùng qua pip, không fork.** Mesh người và toàn bộ blendshape là của họ. |
+| MakeHuman / MPFB2 | CC0 | Asset gốc của Anny, kể cả 20 target `measure-*` dùng để khớp số đo. |
 | [Vite](https://vite.dev/) | MIT | Công cụ build/dev server. |
 
 Phần do dự án này viết: giao diện, từ điển tiếng Việt (`src/vi.js`), và bộ chia trang A4 1:1
@@ -164,9 +204,7 @@ lấy code, không lấy asset, không fork**:
 | Nguồn | License | Vì sao không dùng |
 |---|---|---|
 | [GarmentCode](https://github.com/maria-korosteleva/GarmentCode) (ETH Zurich) | MIT | Python. Chỉ tham khảo ý tưởng tham số hoá rập theo component. |
-| [Anny](https://github.com/naver/anny) (Naver Labs) | Apache 2.0 | Body model tham số hoá, asset CC0 từ MakeHuman/MPFB2. Loại ở bước thiết kế Phase 1 — lý do ở [mục 2.1 của spec](docs/superpowers/specs/2026-09-07-3d-mannequin-design.md). |
-| MakeHuman / MPFB2 | CC0 | Như trên. |
-| [SMPL / SMPL-X](https://smpl-x.is.tue.mpg.de/modellicense.html) | non-commercial research | License cấm dùng thương mại. Loại từ đầu. |
+| [SMPL / SMPL-X](https://smpl-x.is.tue.mpg.de/modellicense.html) | non-commercial research | License cấm dùng thương mại. Anny có hỗ trợ topology SMPL-X nhưng phải tải riêng — **không cài, không dùng**. |
 | [Sewformer](https://github.com/sail-sg/sewformer), [DressCode](https://github.com/IHe-KaiI/DressCode), [ChatGarment](https://chatgarment.github.io/) | không rõ / hỗn hợp | Code nghiên cứu, phụ thuộc Maya + Qualoth (phần mềm thương mại). Đọc để lấy kiến trúc. |
 
 Chi tiết khảo sát: [docs/00-research-and-feasibility.md](docs/00-research-and-feasibility.md).

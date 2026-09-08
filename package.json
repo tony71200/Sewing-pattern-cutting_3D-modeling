@@ -9,7 +9,8 @@
     "test": "node --test test/*.test.mjs",
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "service": "python service/body_service.py"
   },
   "keywords": [],
   "author": "",
