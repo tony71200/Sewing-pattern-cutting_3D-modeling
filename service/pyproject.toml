@@ -1,0 +1,11 @@
+[project]
+name = "pattern-studio-body"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = ["anny>=0.6", "numpy>=2", "torch>=2.4"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
