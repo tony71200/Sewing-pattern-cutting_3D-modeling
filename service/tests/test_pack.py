@@ -31,8 +31,9 @@ def test_round_trip_giu_nguyen_so_lieu(blob):
     assert d["header"]["units"] == "mm" and d["header"]["up"] == "y"
     assert d["header"]["vertexCount"] == len(lin.V0)
     assert d["positions"].shape == (len(lin.V0) * 3,)
-    np.testing.assert_allclose(d["positions"], to_browser(apply(lin, t)).ravel(),
-                               rtol=0, atol=1e-3)
+    # positions là mesh GỐC, không phải mesh đã áp target — delta tính từ V0 nên browser
+    # phải tự áp. Gửi mesh đã áp thì browser cộng lần nữa, lệch 50mm.
+    np.testing.assert_allclose(d["positions"], to_browser(lin.V0).ravel(), rtol=0, atol=1e-3)
 
 
 def test_header_co_du_thu_browser_can(blob):

@@ -38,7 +38,10 @@ def _delta_to_browser(D):
 
 def pack(lin, t, want, faces, model):
     Vm = apply(lin, t)
-    V = to_browser(Vm)
+    # Gửi mesh GỐC (V0), không phải mesh đã áp target: delta được tính từ V0, nên nếu gửi
+    # mesh đã áp thì browser cộng delta lần nữa và mọi thứ nhân đôi (đo được: lệch 50mm).
+    # Browser áp `targetValues` trong header để ra đúng mesh này.
+    V = to_browser(lin.V0)
     idx = faces.astype(np.int32).ravel()
     # ĐO LẠI mesh thật, không báo giá trị dự đoán từ Jacobian: dự đoán lệch tới 1.72mm và
     # service là bên duy nhất biết sự thật về thân nó vừa dựng.
@@ -56,6 +59,10 @@ def pack(lin, t, want, faces, model):
         "version": 1, "units": "mm", "up": "y",
         "vertexCount": int(len(V)), "indexCount": int(len(idx)),
         "names": NAMES, "targets": TARGETS,
+        # `base` là số đo tại t=0, gốc của mô hình tuyến tính -> browser dùng cái này.
+        # `measurements` là số đo ĐO LẠI trên mesh đã fit -> sự thật để hiện bảng lệch.
+        # Lẫn hai cái này là bảng lệch sai và bộ giải của browser lệch khỏi service.
+        "base": {n: float(v) for n, v in zip(NAMES, lin.m0)},
         "measurements": {n: float(v) for n, v in zip(NAMES, m)},
         "jacobianPos": lin.Jpos.tolist(), "jacobianNeg": lin.Jneg.tolist(),
         "want": {n: float(v) for n, v in zip(NAMES, want)},

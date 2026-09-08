@@ -86,7 +86,13 @@ def solve_targets(lin, want, limit=2.0, iters=4):
         for _ in range(9):
             r = want - predict(lin, t + step)
             d = np.zeros(9)
-            d[free] = np.linalg.lstsq(J[np.ix_(free, free)], r[free], rcond=None)[0]
+            # Hệ con luôn VUÔNG (free x free) -> dùng solve, không dùng lstsq.
+            # lstsq chính quy hoá bằng SVD nên cho nghiệm khác khử Gauss trên hệ ghép chéo
+            # mạnh; browser dùng khử Gauss, và có test đối chiếu hai lời giải.
+            try:
+                d[free] = np.linalg.solve(J[np.ix_(free, free)], r[free])
+            except np.linalg.LinAlgError:
+                d[free] = np.linalg.lstsq(J[np.ix_(free, free)], r[free], rcond=None)[0]
             cand = t + step + d
             over = free & ((cand > limit + 1e-9) | (cand < -limit - 1e-9))
             if not over.any():
