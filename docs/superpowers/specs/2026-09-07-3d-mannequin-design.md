@@ -1,6 +1,17 @@
-# Spec — Ma-nơ-canh 3D tham số (Phase 1)
+# Spec — Ma-nơ-canh 3D tham số (Phase 1) — ĐÃ BỊ THAY THẾ
 
-Ngày: 2026-09-07 · Trạng thái: chờ duyệt · Phase 0 đã commit tại `fb67d7f`
+> **KHÔNG DÙNG SPEC NÀY.** Thay bằng
+> [2026-09-08-3d-body-anny-design.md](2026-09-08-3d-body-anny-design.md).
+>
+> Spec này sai từ mục 2.1. Nó loại Anny dựa trên câu hỏi đặt sai: "ma-nơ-canh dựng từ số đo"
+> được đem đối lập với "người thật", trong khi người dùng dùng từ "người thật" để chỉ *nhân
+> vật ngoài đời*. Cái người dùng muốn từ đầu là thân người liền mạch kiểu Anny/GarmentCode.
+>
+> Lập luận "6 tham số không thể khớp 16 số đo" ở mục 2.1 cũng sai trên thực tế: Anny có thêm
+> **20 target `measure-*`** của MakeHuman ngoài 6 phenotype. Đo được: 8/9 số đo khớp trong
+> 2 mm. Giữ lại làm ghi chép về một quyết định sai và vì sao nó sai.
+
+Ngày: 2026-09-07 · Trạng thái: **đã thay thế** · Phase 0 đã commit tại `fb67d7f`
 
 ## 1. Mục tiêu
 
