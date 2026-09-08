@@ -34,6 +34,11 @@ Giao diện tiếng Việt, kể cả nhãn in trên rập (`Thân sau`, `Canh s
 
 ## Cài đặt
 
+**Máy mới thì nháy đôi `Setup.bat`** — nó kiểm tra Node/Python, cài npm, tạo `.venv`, tải
+torch CPU và Anny. Chạy lại nhiều lần không sao: bước nào xong thì bỏ qua.
+
+Hoặc làm tay:
+
 ```bash
 npm install
 ```
@@ -78,7 +83,9 @@ Mở trình duyệt vào **http://localhost:5173**
 
 Dừng server: `Ctrl + C` trong cửa sổ terminal.
 
-Muốn dùng tab **Thân 3D** thì mở thêm một cửa sổ terminal:
+Muốn dùng tab **Thân 3D** thì **nháy đôi `RunService.bat`** — nó kiểm tra `.venv`, thư viện
+và cổng 8791 trước khi chạy, và **không tự đóng cửa sổ khi lỗi** để bạn còn đọc được thông
+báo. Hoặc mở terminal và chạy:
 
 ```bash
 npm run service
@@ -148,6 +155,8 @@ npm run service  # service thân 3D, cổng 8791
 ## Cấu trúc
 
 ```
+Setup.bat                        cài đặt trên máy mới (nháy đôi)
+RunService.bat                   khởi động service thân 3D (nháy đôi)
 index.html                       giao diện
 src/main.js                      form, vẽ rập, in, lưu trữ
 src/store.js                     trạng thái dùng chung (form rập + panel 3D)

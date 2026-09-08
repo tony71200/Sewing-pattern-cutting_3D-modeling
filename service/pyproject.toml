@@ -4,6 +4,13 @@ version = "0.1.0"
 requires-python = ">=3.10"
 dependencies = ["anny>=0.6", "numpy>=2", "torch>=2.4"]
 
+# Service khong phai thu vien: khong xuat module nao ra ngoai venv. Khai bao rong de
+# `pip install -e service[dev]` chi cai PHU THUOC.
+# Bo dong nay thi setuptools thay 5 module phang (tape, linear, estimate...) va tu choi
+# build. Ten nhu `estimate` cung qua chung de dua vao site-packages.
+[tool.setuptools]
+py-modules = []
+
 [project.optional-dependencies]
 dev = ["pytest>=8"]
 
