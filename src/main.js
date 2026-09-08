@@ -7,7 +7,7 @@ import { tileToA4 } from './tile.js'
 import { MEASUREMENTS, OPTIONS, SVG_STRINGS, UI } from './vi.js'
 import { getState, setState, setMeasurement, subscribe, save, load } from './store.js'
 import { initView3d } from './view3d.js'
-import { estimate, SAMPLES } from './body/estimate.js'
+import { estimate, SAMPLES } from './estimate.js'
 
 const DESIGNS = {
   bella: { label: 'Bella — block thân nữ', Design: Bella, sample: cisFemaleAdult38 },

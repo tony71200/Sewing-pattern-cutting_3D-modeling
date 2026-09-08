@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { estimate, SAMPLES } from '../src/body/estimate.js'
+import { estimate, SAMPLES } from '../src/estimate.js'
 
 test('trả về đủ bộ số đo của mẫu', () => {
   const { measurements } = estimate({ chest: 1034 }, SAMPLES.bella)

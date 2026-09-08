@@ -1,5 +1,10 @@
 import { cisFemaleAdult38, cisMaleAdult38 } from '@freesewing/models'
 
+// BẢN SAO LOGIC nằm ở service/estimate.py — sửa ở đây thì sửa cả bên đó.
+// Tồn tại hai bản có chủ đích: form "Số đo thân" phải hiện nhãn "ước lượng" TRƯỚC khi gọi
+// service, vì tab Rập chạy được khi không có Python. Dữ liệu dùng chung bộ mẫu của
+// @freesewing/models nên không thể lệch; chỉ logic mới có thể, và cả hai bên đều có test.
+
 export const SAMPLES = { bella: cisFemaleAdult38, brian: cisMaleAdult38 }
 
 /** Số đo là chu vi (vòng). Phần còn lại coi là khoảng cách/chiều dài. */
