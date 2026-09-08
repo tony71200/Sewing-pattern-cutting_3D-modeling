@@ -66,7 +66,14 @@
         <button type="button" data-tab="body">Thân 3D</button>
       </nav>
       <section id="preview" class="tab-panel"></section>
-      <section id="body3d" class="tab-panel" hidden></section>
+      <section id="body3d" class="tab-panel" hidden>
+        <div id="bodyPanel">
+          <p id="bodyStatus" class="status"></p>
+          <button id="rebuildBody" type="button" class="ghost">Dựng lại thân</button>
+          <p class="note" id="residualNote"></p>
+          <table id="residuals"></table>
+        </div>
+      </section>
     </main>
     <div id="print-area"></div>
 

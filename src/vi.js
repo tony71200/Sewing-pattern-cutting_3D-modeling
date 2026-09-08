@@ -55,6 +55,17 @@ export const UI = {
   estimated: 'ước lượng',
   estimatedHint:
     'Số này do máy suy ra từ tỉ lệ cơ thể mẫu, không phải bạn đo. Sửa để dùng số thật.',
+
+  bodyFitting: 'Đang dựng thân…',
+  bodyReady: 'Thân đã khớp số đo',
+  bodyOffline: 'Không kết nối được service thân 3D',
+  rebuild: 'Dựng lại thân',
+  colWant: 'Bạn nhập',
+  colGot: 'Thân đang là',
+  colDiff: 'Lệch',
+  residualNote:
+    'Thân không phải lúc nào cũng khớp hết số đo. Chỗ nào lệch thì hiện ở đây, ' +
+    'không giấu. Lệch lớn nghĩa là dáng người này nằm ngoài tầm với của mô hình.',
 }
 
 /**

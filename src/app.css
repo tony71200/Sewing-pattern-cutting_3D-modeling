@@ -96,6 +96,25 @@ button.ghost { background: #fff; color: #333; border-color: #ccc }
 .tab-panel { flex: 1; overflow: auto; padding: 16px }
 #body3d { padding: 0; position: relative }
 #body3d canvas { display: block; width: 100%; height: 100% }
+#bodyPanel {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 3;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px 12px;
+  max-width: 330px;
+  font-size: 12px;
+}
+#residuals { border-collapse: collapse; width: 100%; margin-top: 6px }
+#residuals th { text-align: right; color: #777; font-weight: 500; padding: 1px 6px }
+#residuals th:first-child { text-align: left }
+#residuals td { text-align: right; padding: 1px 6px; font-variant-numeric: tabular-nums }
+#residuals td:first-child { text-align: left }
+#residuals tr.off td { color: #c53030; font-weight: 600 }
+
 .ring-tip {
   position: absolute;
   pointer-events: none;

@@ -7,6 +7,7 @@ import { tileToA4 } from './tile.js'
 import { MEASUREMENTS, OPTIONS, SVG_STRINGS, UI } from './vi.js'
 import { getState, setState, setMeasurement, subscribe, save, load } from './store.js'
 import { initView3d } from './view3d.js'
+import { parseFit, solveTargets, predictMeasurements } from './body3d.js'
 import { estimate, SAMPLES } from './estimate.js'
 
 const DESIGNS = {
@@ -355,17 +356,97 @@ $('draft').addEventListener('click', onDraft)
 $('print').addEventListener('click', onPrint)
 $('save').addEventListener('click', onSave)
 
-let view3d = null
+// ---------- thân 3D ----------
 
-function genderOfDesign(key) {
-  return key === 'brian' ? 'male' : 'female'
+let view3d = null
+let fit = null
+let fitAbort = null
+
+function setBodyStatus(msg, isError = false) {
+  const el = $('bodyStatus')
+  if (!el) return
+  el.textContent = msg
+  el.className = isError ? 'status error' : 'status ok'
 }
 
-function refreshBody() {
+/**
+ * Gọi service. CHỈ khi phenotype có thể đã đổi (đổi block, bấm dựng lại) — không gọi khi
+ * kéo thanh trượt số đo, vì đó là lúc phải mượt.
+ */
+async function refetchBody() {
   if (!view3d) return
-  const { design: key, measurements } = getState()
-  const { measurements: fullSet } = estimate(measurements, SAMPLES[key])
-  view3d.update(fullSet, genderOfDesign(key))
+  fitAbort?.abort()
+  fitAbort = new AbortController()
+  setBodyStatus(UI.bodyFitting)
+  try {
+    const res = await fetch('/api/fit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ design: getState().design, measurements: getState().measurements }),
+      signal: fitAbort.signal,
+    })
+    if (!res.ok) throw new Error(`service tra ${res.status}`)
+    fit = parseFit(await res.arrayBuffer())
+    view3d.setFit(fit)
+    renderResidualTable()
+    setBodyStatus(UI.bodyReady)
+  } catch (err) {
+    if (err.name === 'AbortError') return
+    fit = null
+    setBodyStatus(`${UI.bodyOffline}: ${err.message}`, true)
+  }
+}
+
+const RESIDUAL_LIMIT_MM = 5
+
+/**
+ * Bảng lệch. BẮT BUỘC, không phải tuỳ chọn: một thân trông đúng mà số đo sai âm thầm là
+ * rập sai. Service được phép không khớp số đo, nhưng phải nói ra chỗ nào không khớp.
+ */
+function renderResidualTable(targets = null) {
+  const host = $('residuals')
+  if (!host) return
+  host.replaceChildren()
+  if (!fit) return
+
+  const t = targets ?? fit.header.names.map((n) => fit.header.targetValues[n])
+  const got = predictMeasurements(fit.header, t)
+  const want = getState().measurements
+
+  const head = document.createElement('tr')
+  for (const label of ['', UI.colWant, UI.colGot, UI.colDiff]) {
+    const th = document.createElement('th')
+    th.textContent = label
+    head.appendChild(th)
+  }
+  host.appendChild(head)
+
+  for (const name of fit.header.names) {
+    const w = want[name] ?? fit.header.want[name]
+    const g = got[name]
+    const d = g - w
+    const tr = document.createElement('tr')
+    if (Math.abs(d) > RESIDUAL_LIMIT_MM) tr.className = 'off'
+    for (const text of [
+      MEASUREMENTS[name]?.t ?? name,
+      Math.round(w),
+      Math.round(g),
+      `${d > 0 ? '+' : ''}${Math.round(d)}`,
+    ]) {
+      const td = document.createElement('td')
+      td.textContent = text
+      tr.appendChild(td)
+    }
+    host.appendChild(tr)
+  }
+}
+
+/** Số đo đổi mà phenotype chưa cần đổi: giải lại target ngay trong browser. */
+function refreshBodyLocal() {
+  if (!fit || !view3d) return
+  const t = solveTargets(fit.header, getState().measurements)
+  view3d.setTargets(t)
+  renderResidualTable(t)
 }
 
 for (const btn of document.querySelectorAll('#tabs button')) {
@@ -379,12 +460,17 @@ for (const btn of document.querySelectorAll('#tabs button')) {
     if (tab === 'body') {
       if (!view3d) view3d = initView3d($('body3d'))
       view3d.resize()
-      refreshBody()
+      if (!fit) refetchBody()
+      else refreshBodyLocal()
     }
   })
 }
 
-subscribe(refreshBody)
+subscribe(refreshBodyLocal)
+
+$('rebuildBody').addEventListener('click', refetchBody)
+$('rebuildBody').textContent = UI.rebuild
+$('residualNote').textContent = UI.residualNote
 
 load()
 if (!Object.keys(getState().measurements).length) {
