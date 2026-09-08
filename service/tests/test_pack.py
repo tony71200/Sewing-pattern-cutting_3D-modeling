@@ -75,3 +75,26 @@ def test_du_doan_jacobian_sat_voi_do_that(blob):
     h = unpack(buf)["header"]
     err = np.abs(predict(lin, t) - np.array([h["measurements"][n] for n in NAMES]))
     assert err.max() < 3.0, f"lệch {err.max():.2f}mm giữa dự đoán và đo thật"
+
+
+def test_mo_thang_cong_trong_trinh_duyet_ra_trang_giai_thich():
+    """Nguoi dung SE mo cong nay vi no duoc in ra luc khoi dong. Tra JSON 'not found'
+    trong nhu hong. Phai giai thich va chi sang http://localhost:5173."""
+    from body_service import LANDING
+    html = LANDING.decode("utf-8")
+    assert "localhost:5173" in html
+    assert "npm run dev" in html
+    assert html.lstrip().startswith("<!doctype html")
+
+
+def test_thong_bao_khoi_dong_thuan_ASCII():
+    """Console cmd.exe mac dinh khong ma hoa duoc dau tieng Viet: print() se nem
+    UnicodeEncodeError va service chet ngay khi vua san sang."""
+    import pathlib
+    import re
+    src = pathlib.Path(__file__).resolve().parents[1] / "body_service.py"
+    block = src.read_text("utf-8").split('if __name__ == "__main__":')[1]
+    for line in block.splitlines():
+        if "print(" in line:
+            bad = [c for c in line if ord(c) > 127]
+            assert not bad, f"ky tu ngoai ASCII {bad} trong: {line.strip()}"

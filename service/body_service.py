@@ -113,6 +113,25 @@ def fit_request(payload):
     return pack(lin, t, want, model.faces.cpu().numpy(), model)
 
 
+LANDING = """<!doctype html>
+<html lang="vi"><meta charset="utf-8"><title>Service thân 3D</title>
+<style>
+ body{font:15px/1.6 system-ui,sans-serif;max-width:34em;margin:12vh auto;padding:0 1.5em;color:#222}
+ h1{font-size:19px;margin:0 0 .2em} p{margin:.8em 0}
+ code{background:#f2f2f2;padding:1px 5px;border-radius:3px}
+ a{font-size:20px;font-weight:600}
+ .ok{color:#276749}
+</style>
+<h1>Service thân 3D đang chạy <span class="ok">&#10003;</span></h1>
+<p>Đây <strong>không phải</strong> giao diện ứng dụng — cổng này chỉ để app gọi dữ liệu thân
+người. Ứng dụng nằm ở:</p>
+<p><a href="http://localhost:5173">http://localhost:5173</a></p>
+<p>Chưa mở được? Mở một cửa sổ terminal khác trong thư mục dự án và chạy
+<code>npm run dev</code>.</p>
+<p>Cửa sổ đang chạy service này cứ để nguyên. Đóng service: bấm <code>Ctrl+C</code>.</p>
+</html>""".encode("utf-8")
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, *a):
         pass
@@ -126,9 +145,12 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path == "/api/health":
-            self._send(200, b'{"ok":true}', "application/json")
-        else:
-            self._send(404, b'{"error":"not found"}', "application/json")
+            return self._send(200, b'{"ok":true}', "application/json")
+        if self.path.startswith("/api/"):
+            return self._send(404, b'{"error":"not found"}', "application/json")
+        # Mở thẳng cổng này trong trình duyệt là chuyện người dùng SẼ làm — nó được in ra
+        # lúc khởi động. Trả JSON "not found" thì trông như hỏng. Giải thích tử tế hơn.
+        self._send(200, LANDING, "text/html; charset=utf-8")
 
     def do_POST(self):
         if self.path != "/api/fit":
@@ -150,5 +172,12 @@ if __name__ == "__main__":
     # Chịu 8s lúc khởi động còn hơn để người dùng đợi ở lần bấm đầu tiên.
     print("dang ham nong (bien dich kernel, mat vai giay)...")
     fit_request({"design": "bella", "measurements": {}})
-    print(f"san sang sau {time.time() - t0:.0f}s -> http://127.0.0.1:{PORT}")
+    # Chi dung ASCII o day: console cmd.exe mac dinh khong ma hoa duoc dau tieng Viet lan
+    # em-dash, va print() se nem UnicodeEncodeError lam service chet ngay khi vua san sang.
+    print()
+    print(f"  SAN SANG sau {time.time() - t0:.0f}s.")
+    print(f"  Service lang nghe o cong {PORT}. Day KHONG phai trang web de mo.")
+    print("  Mo cua so khac, chay 'npm run dev', roi vao:  http://localhost:5173")
+    print("  Dong service: Ctrl+C")
+    print()
     ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
