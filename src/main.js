@@ -7,7 +7,7 @@ import { tileToA4 } from './tile.js'
 import { MEASUREMENTS, OPTIONS, SVG_STRINGS, UI } from './vi.js'
 import { getState, setState, setMeasurement, subscribe, save, load } from './store.js'
 import { initView3d } from './view3d.js'
-import { parseFit, solveTargets, predictMeasurements } from './body3d.js'
+import { parseFit, solveTargets, predictMeasurements, serviceBase } from './body3d.js'
 import { estimate, SAMPLES } from './estimate.js'
 
 const DESIGNS = {
@@ -379,7 +379,7 @@ async function refetchBody() {
   fitAbort = new AbortController()
   setBodyStatus(UI.bodyFitting)
   try {
-    const res = await fetch('/api/fit', {
+    const res = await fetch(`${serviceBase(location.protocol)}/api/fit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ design: getState().design, measurements: getState().measurements }),
