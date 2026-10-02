@@ -120,11 +120,10 @@ echo   CAI DAT XONG
 echo  ==========================================
 echo.
 echo  Cach chay:
-echo    1. Nhay doi RunService.bat        ^(service than 3D^)
-echo    2. Mo cua so khac, chay:  npm run dev
-echo    3. Vao trinh duyet:  http://localhost:5173
+echo    1. Nhay doi RunApp.bat            ^(mo ung dung^)
+echo    2. Nhay doi RunService.bat        ^(chi can cho tab Than 3D^)
 echo.
-echo  Buoc 1 co the bo qua: khi do tab Rap van chay day du,
+echo  Buoc 2 co the bo qua: khi do tab Rap van chay day du,
 echo  chi tab Than 3D la khong dung duoc.
 goto :done
 
@@ -134,7 +133,7 @@ echo  ==========================================
 echo   CAI DAT XONG ^(khong co Than 3D^)
 echo  ==========================================
 echo.
-echo  Cach chay:  npm run dev    roi vao  http://localhost:5173
+echo  Cach chay:  nhay doi RunApp.bat
 goto :done
 
 :fail

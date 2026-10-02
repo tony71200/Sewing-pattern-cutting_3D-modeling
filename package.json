@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "service": "python service/body_service.py"
+    "service": ".venv\\Scripts\\python.exe service/body_service.py"
   },
   "keywords": [],
   "author": "",

@@ -126,8 +126,8 @@ LANDING = """<!doctype html>
 <p>Đây <strong>không phải</strong> giao diện ứng dụng — cổng này chỉ để app gọi dữ liệu thân
 người. Ứng dụng nằm ở:</p>
 <p><a href="http://localhost:5173">http://localhost:5173</a></p>
-<p>Chưa mở được? Mở một cửa sổ terminal khác trong thư mục dự án và chạy
-<code>npm run dev</code>.</p>
+<p>Chưa mở được? Nhấp đúp <code>RunApp.bat</code> trong thư mục dự án
+(hoặc chạy <code>npm run dev</code> nếu đang sửa code).</p>
 <p>Cửa sổ đang chạy service này cứ để nguyên. Đóng service: bấm <code>Ctrl+C</code>.</p>
 </html>""".encode("utf-8")
 
@@ -199,7 +199,7 @@ if __name__ == "__main__":
     print()
     print(f"  SAN SANG sau {time.time() - t0:.0f}s.")
     print(f"  Service lang nghe o cong {PORT}. Day KHONG phai trang web de mo.")
-    print("  Mo cua so khac, chay 'npm run dev', roi vao:  http://localhost:5173")
+    print("  Mo ung dung: nhay doi RunApp.bat (hoac 'npm run dev' -> http://localhost:5173)")
     print("  Dong service: Ctrl+C")
     print()
     ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
