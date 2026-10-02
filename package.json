@@ -10,6 +10,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "smoke": "node scripts/smoke-file.mjs",
     "service": ".venv\\Scripts\\python.exe service/body_service.py"
   },
   "keywords": [],
