@@ -1,7 +1,9 @@
 # S1 — Đóng gói một file chạy từ `file://`, tài liệu lỗi, harness
 
-Ngày: 2026-10-02 · Nhánh: `20260908_than-3d-anny` · Quyết định gốc: [ADR-0004](../../adr/0004-mot-file-html-mo-tu-file-protocol.md),
+Ngày: 2026-10-02 · Nhánh: `20260908_than-3d-anny` (thực thi trên `20261002_dong-goi-file`) · Quyết định gốc: [ADR-0004](../../adr/0004-mot-file-html-mo-tu-file-protocol.md),
 [ADR-0003](../../adr/0003-service-python-la-du-phong-va-chuan-doi-chieu.md)
+
+**Trạng thái:** xong 2026-10-02, in 1:1 đã đo 100 mm
 
 S1 là spec đầu tiên trong năm spec. Thứ tự chung:
 
