@@ -109,10 +109,19 @@ Cảnh báo: package freesewing v4 khai thiếu dependency (`@freesewing/config`
 thì cứ `npm i` cái nó đòi. `npm audit` báo lỗi prototype pollution trong `lodash.unset`
 (transitive) — app chạy local, input tự sinh, chấp nhận; xem lại nếu có ngày mở ra mạng.
 
+**App là một file `dist/index.html` mở từ `file://` ([ADR-0004](docs/adr/0004-mot-file-html-mo-tu-file-protocol.md)).**
+Người dùng nhấp đúp `RunApp.bat` (build nếu chưa có, rồi mở). `file://` chặn module/fetch
+ngoài, không có proxy: đừng thêm asset ngoài, CDN, `fetch` file cạnh bên.
+
+**Gặp lỗi lạ → đọc [`docs/tai-lieu-loi.md`](docs/tai-lieu-loi.md) trước. Sửa xong lỗi mới →
+thêm mục + harness.**
+
 ```bash
-npm run dev     # vite, cổng 5173
-npm test        # node --test, kiểm tra toán chia trang
+RunApp.bat            # người dùng: build nếu cần + mở dist/index.html  (RunApp.bat rebuild)
+npm run dev           # phát triển, cổng 5173, có proxy /api
+npm test              # node --test: toán chia trang, build một file, launcher, store, body3d
 npm run build
+npm run smoke         # Chrome headless mở dist/index.html từ file://
 ```
 
 ## Thân người 3D (Phase 1)
@@ -162,7 +171,7 @@ form "Số đo thân" phải hiện nhãn ước lượng trước khi gọi ser
 `samples.json` nên không thể lệch; sửa logic thì sửa cả hai.
 
 ```bash
-npm run service   # cổng 8791, Vite proxy /api sang đây
+npm run service   # cổng 8791 (.venv). Dev: proxy /api. file://: gọi thẳng, cần CORS
 .venv/Scripts/python -m pytest service
 ```
 
