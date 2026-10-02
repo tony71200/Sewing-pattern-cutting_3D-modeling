@@ -118,3 +118,6 @@ $RECYCLE.BIN/
 # Rập và bản ghi xuất ra khi thử fit — dữ liệu cá nhân, không đẩy lên
 exports/
 *.pattern.json
+
+# Model 3D tai ve (Sketchfab...), nang, khong commit. Xem ADR-0002.
+assets/
