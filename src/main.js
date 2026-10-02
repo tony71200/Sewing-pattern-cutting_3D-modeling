@@ -4,8 +4,8 @@ import { themePlugin } from '@freesewing/plugin-theme'
 import { i18nPlugin } from '@freesewing/plugin-i18n'
 import { cisFemaleAdult38, cisMaleAdult38 } from '@freesewing/models'
 import { tileToA4 } from './tile.js'
-import { MEASUREMENTS, OPTIONS, SVG_STRINGS, UI } from './vi.js'
-import { getState, setState, setMeasurement, subscribe, save, load } from './store.js'
+import { MEASUREMENTS, OPTIONS, SVG_STRINGS, UI, RECORD } from './vi.js'
+import { getState, setState, setMeasurement, subscribe, save, load, recordToState } from './store.js'
 import { initView3d } from './view3d.js'
 import { parseFit, solveTargets, predictMeasurements, serviceBase } from './body3d.js'
 import { estimate, SAMPLES } from './estimate.js'
@@ -290,6 +290,35 @@ function onSave() {
   }
 }
 
+async function onOpenFile(e) {
+  const file = e.target.files?.[0]
+  e.target.value = '' // chọn lại đúng file đó vẫn phải bắn 'change'
+  if (!file) return
+  try {
+    let record
+    try {
+      record = JSON.parse(await file.text())
+    } catch {
+      throw new Error(RECORD.notRecord)
+    }
+    setState(recordToState(record, Object.keys(DESIGNS)))
+    select.value = getState().design
+    $('sa').value = String(getState().sa)
+    buildMeasurementForm()
+    buildBodyForm()
+    buildEaseForm()
+    showPreview(draft())
+    const now = lastDraft.record.designVersion
+    let msg = RECORD.loaded(file.name)
+    if (record.designVersion && record.designVersion !== now) {
+      msg += RECORD.versionDiffers(record.designVersion, now)
+    }
+    status(msg)
+  } catch (err) {
+    status(err.message, true)
+  }
+}
+
 function onResetEase() {
   const easePct = {}
   for (const slider of $('ease').querySelectorAll('input[data-option]')) {
@@ -355,6 +384,9 @@ $('resetEase').addEventListener('click', onResetEase)
 $('draft').addEventListener('click', onDraft)
 $('print').addEventListener('click', onPrint)
 $('save').addEventListener('click', onSave)
+$('open').textContent = RECORD.open
+$('open').addEventListener('click', () => $('openFile').click())
+$('openFile').addEventListener('change', onOpenFile)
 
 // ---------- thân 3D ----------
 

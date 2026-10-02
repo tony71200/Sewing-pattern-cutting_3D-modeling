@@ -135,3 +135,15 @@ export const SVG_STRINGS = {
 
 export const label = (dict, key) => dict[key]?.t ?? key
 export const hint = (dict, key) => dict[key]?.d ?? ''
+
+/** Nạp lại bản ghi .json — đường chuyển số đo từ `npm run dev` sang file:// (L09). */
+export const RECORD = {
+  open: 'Mở bản ghi .json',
+  loaded: (name) => `Đã nạp ${name}. Rập đã vẽ lại theo số đo trong file.`,
+  versionDiffers: (then, now) =>
+    ` Bản ghi vẽ bằng drafter ${then}, hiện là ${now}: rập có thể khác bản cũ.`,
+  notRecord: 'File này không phải bản ghi rập (file .json do nút "Lưu bản ghi" tạo).',
+  units: (u) => `Bản ghi dùng đơn vị "${u}", app chỉ nhận mm.`,
+  design: (d) => `Bản ghi là block "${d}", app không có block này.`,
+  measurements: 'Bản ghi có số đo không phải số.',
+}
