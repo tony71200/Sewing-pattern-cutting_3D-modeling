@@ -10,7 +10,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "service": "python service/body_service.py"
+    "smoke": "node scripts/smoke-file.mjs",
+    "service": ".venv\\Scripts\\python.exe service/body_service.py"
   },
   "keywords": [],
   "author": "",
@@ -30,6 +31,7 @@
     "three": "^0.185.1"
   },
   "devDependencies": {
-    "vite": "^8.2.2"
+    "vite": "^8.2.2",
+    "vite-plugin-singlefile": "^2.3.3"
   }
 }

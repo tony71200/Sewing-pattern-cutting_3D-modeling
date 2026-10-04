@@ -34,6 +34,14 @@ export function parseFit(arrayBuffer) {
   return { header, positions, indices, deltas }
 }
 
+/**
+ * Gốc URL của service thân 3D. `npm run dev` có proxy Vite nên gọi đường tương đối;
+ * mở dist/index.html từ ổ đĩa (file://) thì không có proxy, phải gọi thẳng cổng.
+ */
+export function serviceBase(protocol) {
+  return protocol === 'file:' ? 'http://127.0.0.1:8791' : ''
+}
+
 /** Khử Gauss có chọn trục. n nhỏ (9) nên không cần gì phức tạp hơn. */
 export function solve9(A, b) {
   const n = b.length

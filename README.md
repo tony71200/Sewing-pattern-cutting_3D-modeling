@@ -75,25 +75,18 @@ sau đó browser tự lo phần kéo thanh trượt.
 
 ## Mở ứng dụng
 
-```bash
-npm run dev
-```
+**Nhấp đúp `RunApp.bat`.** Lần đầu nó cài thư viện và build (vài phút). Các lần sau nó mở
+ngay `dist/index.html` trong trình duyệt, không cần server hay terminal. Sửa code xong thì chạy
+`RunApp.bat rebuild`.
 
-Mở trình duyệt vào **http://localhost:5173**
+Muốn dùng tab **Thân 3D** thì **nhấp đúp `RunService.bat`** (cửa sổ riêng, để nguyên). Nó kiểm
+tra `.venv`, thư viện và cổng 8791 trước khi chạy, và không tự đóng cửa sổ khi lỗi. Lần đầu mất
+khoảng 10 giây để biên dịch kernel.
 
-Dừng server: `Ctrl + C` trong cửa sổ terminal.
+Chuyển từ bản `npm run dev` cũ sang? Số đo **không** tự theo sang (khác origin). Ở bản cũ bấm
+**Lưu bản ghi .json**, sang bản mới bấm **Mở bản ghi .json**.
 
-Muốn dùng tab **Thân 3D** thì **nháy đôi `RunService.bat`** — nó kiểm tra `.venv`, thư viện
-và cổng 8791 trước khi chạy, và **không tự đóng cửa sổ khi lỗi** để bạn còn đọc được thông
-báo. Hoặc mở terminal và chạy:
-
-```bash
-npm run service
-```
-
-Nó nạp Anny rồi hâm nóng một lượt trước khi báo sẵn sàng — lần fit đầu tiên mất ~8 giây vì
-trình biên dịch kernel, các lần sau ~1 giây. Chịu chờ lúc khởi động còn hơn để bạn đợi ở lần
-bấm đầu tiên.
+Gặp lỗi: xem [`docs/tai-lieu-loi.md`](docs/tai-lieu-loi.md).
 
 ## Cách dùng
 
@@ -105,7 +98,7 @@ bấm đầu tiên.
 4. Đặt **Chừa đường may** (mặc định 10 mm).
 5. Bấm **Vẽ rập** — rập hiện bên phải.
 6. Bấm **Lưu bản ghi .json** để giữ lại thông số. Cần khi muốn dựng lại đúng rập này sau
-   khi mặc thử.
+   khi mặc thử. **Mở bản ghi .json** nạp lại đúng số đo, cử động và đường may của file đó.
 7. Bấm **In 1:1 (A4)**.
 
 Số đo và độ cử động được nhớ tự động trong trình duyệt.
@@ -143,9 +136,11 @@ Bộ Bella đầy đủ ra khoảng **18 trang A4** (6 cột × 3 hàng). Vài t
 
 ```bash
 npm test         # chạy test (toán chia trang A4)
+npm run dev      # phát triển, http://localhost:5173
 npm run build    # build bản tĩnh vào dist/
+npm run smoke    # mở dist/index.html bằng Chrome headless để kiểm
 npm run preview  # xem thử bản build
-npm run service  # service thân 3D, cổng 8791
+npm run service  # service thân 3D, cổng 8791 (dùng .venv)
 ```
 
 ```bash
@@ -156,6 +151,7 @@ npm run service  # service thân 3D, cổng 8791
 
 ```
 Setup.bat                        cài đặt trên máy mới (nháy đôi)
+RunApp.bat                       mở ứng dụng (nháy đôi; "rebuild" để build lại)
 RunService.bat                   khởi động service thân 3D (nháy đôi)
 index.html                       giao diện
 src/main.js                      form, vẽ rập, in, lưu trữ

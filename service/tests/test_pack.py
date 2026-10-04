@@ -98,3 +98,45 @@ def test_thong_bao_khoi_dong_thuan_ASCII():
         if "print(" in line:
             bad = [c for c in line if ord(c) > 127]
             assert not bad, f"ky tu ngoai ASCII {bad} trong: {line.strip()}"
+
+
+import threading
+import urllib.request
+from http.server import ThreadingHTTPServer
+
+
+@pytest.fixture
+def server(monkeypatch):
+    """Handler that tren cong ngau nhien; fit_request gia de khong nap Anny."""
+    import body_service
+    monkeypatch.setattr(body_service, "fit_request", lambda payload: b"BLOB")
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), body_service.Handler)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    yield f"http://127.0.0.1:{srv.server_address[1]}"
+    srv.shutdown()
+
+
+def test_cors_post_tu_trang_file(server):
+    """L07: trang mo tu file:// gui Origin: null, khong co proxy Vite."""
+    req = urllib.request.Request(server + "/api/fit", data=b"{}", method="POST",
+                                 headers={"Content-Type": "application/json", "Origin": "null"})
+    with urllib.request.urlopen(req) as r:
+        assert r.status == 200
+        assert r.headers["Access-Control-Allow-Origin"] == "*"
+        assert r.read() == b"BLOB"
+
+
+def test_cors_preflight_co_private_network(server):
+    """Content-Type JSON kich hoat preflight; Chrome con hoi them Private Network Access."""
+    req = urllib.request.Request(server + "/api/fit", method="OPTIONS", headers={
+        "Origin": "null",
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "content-type",
+        "Access-Control-Request-Private-Network": "true",
+    })
+    with urllib.request.urlopen(req) as r:
+        assert r.status == 204
+        assert r.headers["Access-Control-Allow-Origin"] == "*"
+        assert "POST" in r.headers["Access-Control-Allow-Methods"]
+        assert "content-type" in r.headers["Access-Control-Allow-Headers"].lower()
+        assert r.headers["Access-Control-Allow-Private-Network"] == "true"

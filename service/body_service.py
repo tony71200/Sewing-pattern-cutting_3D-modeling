@@ -126,22 +126,44 @@ LANDING = """<!doctype html>
 <p>Đây <strong>không phải</strong> giao diện ứng dụng — cổng này chỉ để app gọi dữ liệu thân
 người. Ứng dụng nằm ở:</p>
 <p><a href="http://localhost:5173">http://localhost:5173</a></p>
-<p>Chưa mở được? Mở một cửa sổ terminal khác trong thư mục dự án và chạy
-<code>npm run dev</code>.</p>
+<p>Chưa mở được? Nhấp đúp <code>RunApp.bat</code> trong thư mục dự án
+(hoặc chạy <code>npm run dev</code> nếu đang sửa code).</p>
 <p>Cửa sổ đang chạy service này cứ để nguyên. Đóng service: bấm <code>Ctrl+C</code>.</p>
 </html>""".encode("utf-8")
+
+
+# Trang mo tu file:// (ADR-0004) goi thang cong nay, khong qua proxy Vite: can CORS.
+# "*" la du: chi nghe 127.0.0.1, khong cookie. Private-Network: Chrome hoi them khi
+# mot trang khong phai localhost goi vao dia chi loopback.
+CORS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Private-Network": "true",
+}
 
 
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, *a):
         pass
 
+    def _cors(self):
+        for k, v in CORS.items():
+            self.send_header(k, v)
+
     def _send(self, code, body, ctype):
         self.send_response(code)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(len(body)))
+        self._cors()
         self.end_headers()
         self.wfile.write(body)
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.send_header("Content-Length", "0")
+        self._cors()
+        self.end_headers()
 
     def do_GET(self):
         if self.path == "/api/health":
@@ -177,7 +199,7 @@ if __name__ == "__main__":
     print()
     print(f"  SAN SANG sau {time.time() - t0:.0f}s.")
     print(f"  Service lang nghe o cong {PORT}. Day KHONG phai trang web de mo.")
-    print("  Mo cua so khac, chay 'npm run dev', roi vao:  http://localhost:5173")
+    print("  Mo ung dung: nhay doi RunApp.bat (hoac 'npm run dev' -> http://localhost:5173)")
     print("  Dong service: Ctrl+C")
     print()
     ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()

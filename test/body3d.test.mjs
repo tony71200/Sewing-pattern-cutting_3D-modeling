@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { parseFit, solve9, solveTargets, buildPositions, predictMeasurements } from '../src/body3d.js'
+import { parseFit, solve9, solveTargets, buildPositions, predictMeasurements, serviceBase } from '../src/body3d.js'
 
 const buf = readFileSync(new URL('./fixtures/fit.bin', import.meta.url))
 const fit = parseFit(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength))
@@ -99,4 +99,10 @@ test('header có cả base lẫn measurements, và chúng KHÁC nhau', () => {
   const diff = fit.header.names.some(
     (n) => Math.abs(fit.header.base[n] - fit.header.measurements[n]) > 1)
   assert.ok(diff, 'nếu giống hệt nhau thì service đang gửi nhầm một trong hai')
+})
+
+test('serviceBase: file:// gọi thẳng cổng 8791, còn lại đi qua proxy Vite', () => {
+  assert.equal(serviceBase('file:'), 'http://127.0.0.1:8791')
+  assert.equal(serviceBase('http:'), '')
+  assert.equal(serviceBase('https:'), '')
 })

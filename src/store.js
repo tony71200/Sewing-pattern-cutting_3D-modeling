@@ -1,6 +1,8 @@
 // Một nguồn sự thật cho toàn app. Form rập và panel 3D cùng đọc-ghi lên đây,
 // nên không có bài toán đồng bộ hai chiều — chỉ có một state, hai giao diện.
 
+import { RECORD } from './vi.js'
+
 const KEY = 'pattern-studio/v2'
 
 const DEFAULT = {
@@ -62,4 +64,26 @@ export function load() {
 export function resetForTest() {
   state = { ...DEFAULT }
   subs.clear()
+}
+
+/**
+ * Bản ghi .json (do draft() xuất) -> patch cho setState. Hàm thuần, ném lỗi tiếng Việt.
+ * Thay HẲN số đo/cử động bằng thứ trong file: mục đích là tái tạo đúng rập cũ.
+ * `knownDesigns`: key các block app đang có (store không biết freesewing).
+ */
+export function recordToState(record, knownDesigns) {
+  if (!record || typeof record !== 'object' || Array.isArray(record)) throw new Error(RECORD.notRecord)
+  if (record.units !== 'mm') throw new Error(RECORD.units(record.units))
+  if (!knownDesigns.includes(record.design)) throw new Error(RECORD.design(record.design))
+  const m = record.measurements
+  if (!m || typeof m !== 'object' || !Object.values(m).every(Number.isFinite)) {
+    throw new Error(RECORD.measurements)
+  }
+  return {
+    design: record.design,
+    sa: Number.isFinite(record.sa) ? record.sa : DEFAULT.sa,
+    measurements: { ...m },
+    easePct: { ...(record.easePct ?? {}) },
+    estimated: [],
+  }
 }
